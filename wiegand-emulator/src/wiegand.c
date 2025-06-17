@@ -8,6 +8,8 @@
 
 typedef struct 
 {
+    uint8_t last_f;
+    uint16_t last_u;
     uint32_t bits;
     int ptr;
 } wieg_data_t;
@@ -55,6 +57,9 @@ status_t wiegand_send(uint8_t facility, uint16_t user_id)
 {
     bool leading_parity = 0;  // even parity, first 12 bits
     bool trailing_parity = 1; // odd parity, last 12 bits
+
+    _ctx.data.last_f = facility;
+    _ctx.data.last_u = user_id;
 
     _ctx.data.bits = 0;
 
@@ -105,7 +110,7 @@ bool pulse_int_cb(repeating_timer_t *rt)
     gpio_put(_ctx.pins[bit], false);
     
     // Reschedule until 26 bits have been sent
-    return _ctx.data.ptr++ < 26;
+    return ++_ctx.data.ptr < 26;
 }
 
 int64_t reset_cb(alarm_id_t id, void *user_data)
@@ -126,8 +131,8 @@ bool wiegand_handler(int argc, char *argv[])
         // PULSE width interval - sets the pulse characteristics
         if (argc == 3)
         {
-            uint8_t w = atoi(argv[1]);
-            uint8_t i = atoi(argv[2]);
+            int w = atoi(argv[1]);
+            int i = atoi(argv[2]);
             wiegand_pulse_set(w, i);
             return true;
         }
@@ -140,6 +145,15 @@ bool wiegand_handler(int argc, char *argv[])
             uint8_t f = atoi(argv[1]);
             uint16_t u = atoi(argv[2]);
             wiegand_send(f, u);
+            return true;
+        }
+    }
+    else if (strcmp(argv[0], "r") == 0 || strcmp(argv[0], "R") == 0)
+    {
+        // R - repeat last emulated wiegand signal
+        if (argc == 1)
+        {
+            wiegand_send(_ctx.data.last_f, _ctx.data.last_u);
             return true;
         }
     }

@@ -1,4 +1,5 @@
 #include "wiegand.h"
+
 #include "status.h"
 #include "cmd.h"
 
@@ -6,41 +7,52 @@
 #include <string.h>
 #include <stdlib.h>
 
-typedef struct 
-{
-    uint8_t last_f;
-    uint16_t last_u;
+typedef struct {
+    uint8_t f;
+    uint16_t u;
+    uint32_t reps;
+    repeating_timer_t timer;
+} repeat_data_t;
+
+typedef struct {
     uint32_t bits;
     int ptr;
 } wieg_data_t;
 
-typedef struct 
-{
+typedef struct {
     uint p_width;
     uint p_int;
     wieg_data_t data;
+    repeat_data_t rpt;
     repeating_timer_t timer;
     uint pins[2];
 } wieg_ctx_t;
 
-static wieg_ctx_t _ctx;
+static wieg_ctx_t _ctx = {
+    .rpt = {
+        .reps = 0,
+    },
+};
 
 bool wiegand_handler(int argc, char *argv[]);
 bool pulse_int_cb(repeating_timer_t *rt);
-int64_t reset_cb(alarm_id_t id, void *user_data);
+int64_t reset_cb(alarm_id_t id, void *data);
+bool send_repeat_cb(repeating_timer_t *rt);
 
 status_t wiegand_init(int d0, int d1, int p_width, int p_int)
 {
     _ctx.pins[0] = d0;
     _ctx.pins[1] = d1;
 
-    gpio_init(d0);
-    gpio_set_dir(d0, GPIO_OUT);
-    gpio_put(d0, true); // Start HIGH
+    // d0 init
+    gpio_init(_ctx.pins[0]);
+    gpio_set_dir(_ctx.pins[0], GPIO_OUT);
+    gpio_put(_ctx.pins[0], true); // Start HIGH
 
-    gpio_init(d1);
-    gpio_set_dir(d1, GPIO_OUT);
-    gpio_put(d1, true); // Start HIGH
+    // d1 init
+    gpio_init(_ctx.pins[1]);
+    gpio_set_dir(_ctx.pins[1], GPIO_OUT);
+    gpio_put(_ctx.pins[1], true); // Start HIGH
 
     wiegand_pulse_set(p_width, p_int);
 
@@ -58,8 +70,8 @@ status_t wiegand_send(uint8_t facility, uint16_t user_id)
     bool leading_parity = 0;  // even parity, first 12 bits
     bool trailing_parity = 1; // odd parity, last 12 bits
 
-    _ctx.data.last_f = facility;
-    _ctx.data.last_u = user_id;
+    // If we're repeating a signal, just end it
+    _ctx.rpt.reps = 0;
 
     _ctx.data.bits = 0;
 
@@ -99,31 +111,6 @@ status_t wiegand_send(uint8_t facility, uint16_t user_id)
     return STATUS_OK;
 }
 
-bool pulse_int_cb(repeating_timer_t *rt) 
-{
-    bool bit = (_ctx.data.bits >> _ctx.data.ptr) & 1;
-
-    // Schedule the timer to reset the bit according to pulse width
-    add_alarm_in_us(_ctx.p_width, reset_cb, (void *)_ctx.pins[bit], true);
-
-    // Set data pin LOW
-    gpio_put(_ctx.pins[bit], false);
-    
-    // Reschedule until 26 bits have been sent
-    return ++_ctx.data.ptr < 26;
-}
-
-int64_t reset_cb(alarm_id_t id, void *user_data)
-{
-    // Set data pin HIGH again
-    uint pin = (int) user_data;
-    gpio_put(pin, true);
-
-    // pulse_int_cb schedules this, don't need to return to resched
-    return 0;
-}
-
-
 bool wiegand_handler(int argc, char *argv[])
 {
     if (strcmp(argv[0], "pulse") == 0 || strcmp(argv[0], "PULSE") == 0)
@@ -142,8 +129,13 @@ bool wiegand_handler(int argc, char *argv[])
         // SEND facility user_id - emulates wiegand signal
         if (argc == 3)
         {
-            uint8_t f = atoi(argv[1]);
-            uint16_t u = atoi(argv[2]);
+            uint8_t f = (uint8_t)strtol(argv[1], NULL, 16);
+            uint16_t u = (uint16_t)strtol(argv[2], NULL, 16);
+
+            // Save this as the "last" set
+            _ctx.rpt.f = f;
+            _ctx.rpt.u = u;
+
             wiegand_send(f, u);
             return true;
         }
@@ -151,12 +143,64 @@ bool wiegand_handler(int argc, char *argv[])
     else if (strcmp(argv[0], "r") == 0 || strcmp(argv[0], "R") == 0)
     {
         // R - repeat last emulated wiegand signal
-        if (argc == 1)
+        if (_ctx.rpt.reps != 0)
         {
-            wiegand_send(_ctx.data.last_f, _ctx.data.last_u);
-            return true;
+            _ctx.rpt.reps = 0;
         }
+        else
+        {
+            if (argc == 1)
+            {
+                _ctx.rpt.reps = 0xFFFFFFFF;
+            }
+            else if (argc == 2)
+            {
+                uint32_t reps = atoi(argv[1]);
+                _ctx.rpt.reps = reps;
+            }
+
+            add_repeating_timer_ms(1000, send_repeat_cb, NULL, &_ctx.rpt.timer);
+        }
+            return true;
     }
 
     return false;
+}
+
+// Timer callback, calls at the start of each interval
+bool pulse_int_cb(repeating_timer_t *rt) 
+{
+    bool bit = (_ctx.data.bits >> _ctx.data.ptr) & 1;
+
+    // Schedule the timer to reset the bit according to pulse width
+    add_alarm_in_us(_ctx.p_width, reset_cb, (void *)_ctx.pins[bit], true);
+
+    // Set data pin LOW
+    gpio_put(_ctx.pins[bit], false);
+    
+    // Reschedule until 26 bits have been sent
+    return ++_ctx.data.ptr < 26;
+}
+
+// Timer callback, calls at the end of pulse width for each bit
+int64_t reset_cb(alarm_id_t id, void *data)
+{
+    // Set data pin HIGH again
+    uint pin = (int) data;
+    gpio_put(pin, true);
+
+    // pulse_int_cb schedules this, don't need to return to resched
+    return 0;
+}
+
+// Timer callback, calls once a second when repeats have been requested
+bool send_repeat_cb(repeating_timer_t *rt) 
+{
+    if (_ctx.rpt.reps == 0)
+    {
+        return 0;
+    }
+
+    wiegand_send(_ctx.rpt.f, _ctx.rpt.u);
+    return _ctx.rpt.reps-- > 0;
 }

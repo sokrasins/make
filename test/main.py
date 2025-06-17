@@ -12,7 +12,6 @@ hardware.buzzer_off()
 hardware.rgb_led_set(hardware.RGB_OFF)
 hardware.led_off()
 
-# setup RFID
 # setup wiegand reader
 import uwiegand
 
@@ -23,15 +22,11 @@ rfid_reader = uwiegand.Wiegand(
     timer_id=0
 )
 
-
 logger.info("Starting main loop...")
 hardware.led_on()
 time.sleep(0.5)
 hardware.led_off()
 hardware.rgb_led_set(hardware.RGB_BLUE)
-
-
-#print_device_standby_message()
 
 door_previous_state = hardware.get_door_sensor_state()
 in_1_previous_state = hardware.get_in_1_state()

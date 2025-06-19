@@ -4,7 +4,7 @@ import ulogging
 import urequests
 from machine import WDT, Pin, I2C
 from neopixel import NeoPixel
-from ulcdscreen import LcdScreen
+# from ulcdscreen import LcdScreen
 
 ulogging.basicConfig(level=config.LOG_LEVEL)
 logger = ulogging.getLogger("hardware")
@@ -38,19 +38,19 @@ if config.SDA_PIN and config.SCL_PIN:
             f"Found i2c device. Decimal address: {device} | Hexa address: {hex(device)}"
         )
 
-if config.LCD_ENABLE and config.LCD_ADDR in i2c_devices:
-    lcd = LcdScreen(
-        i2c,
-        i2c_address=config.LCD_ADDR,
-        columns=config.LCD_COLS,
-        rows=config.LCD_ROWS,
-    )
-
-else:
-    # initialise without i2c address, and it will silently skip all writes to the i2c bus
-    logger.error("LCD not found on i2c bus but it's configured!")
-    lcd = LcdScreen(i2c, i2c_address=None)
-
+# if config.LCD_ENABLE and config.LCD_ADDR in i2c_devices:
+#     lcd = LcdScreen(
+#         i2c,
+#         i2c_address=config.LCD_ADDR,
+#         columns=config.LCD_COLS,
+#         rows=config.LCD_ROWS,
+#     )
+#
+# else:
+#     # initialise without i2c address, and it will silently skip all writes to the i2c bus
+#     logger.error("LCD not found on i2c bus but it's configured!")
+#     lcd = LcdScreen(i2c, i2c_address=None)
+#
 # setup other pins
 buzzer = None
 reader_led = None

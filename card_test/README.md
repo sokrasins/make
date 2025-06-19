@@ -1,4 +1,4 @@
-# Wiegand Test
+# Card Test
 
 This micropython test strips all wifi connectivity out of the stock BeepBeep application. The only thing left is the wiegand card reading loop. When a card is read, it's logged to the serial port. This can be used in conjunction with the test utility in this repo.
 

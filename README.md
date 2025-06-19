@@ -2,9 +2,10 @@
 
 ## Organization
 
-`bring_up` - Instructions and resources for BeepBeep bring-up (after assembly)
-`card_test` - micropython test code to verify wiegand interpretation
-`docs` - Relevant documents, photos, images, etc. `wiegand_generator` - RP2040-based test wiegand generator
+- `bring_up`: Instructions and resources for BeepBeep bring-up (after assembly)
+- `card_test`: micropython test code to verify wiegand interpretation
+- `docs`: Relevant documents, photos, images, etc. 
+- `wiegand_generator`: RP2040-based test wiegand generator
 
 ## Set up
 

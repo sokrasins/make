@@ -1,15 +1,13 @@
-# BeepBeep Access Control Hardware
+# BeepBeep Bringup
 
-## HW Bringup
-
-### Requirements
+## Requirements
 
 - Multimeter
 - Computer
 - 3.3V USB serial cable (NOT 5V).
 - Micropython binary (included here)
 
-### Steps
+## Steps
 
 1. Check for soldering issues. Common issues include:
     - Shorts along the 5-pin IC

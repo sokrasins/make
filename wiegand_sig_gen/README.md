@@ -1,6 +1,6 @@
-# Wiegand Emulator
+# Wiegand Signal Generator
 
-A signal generator for the Wiegand protocol on the Raspberry Pi pico
+A signal generator for the Wiegand protocol on the Raspberry Pi pico. The generator is caapble of generating 26-bit signals with arbitrary pulse characteristics. The sig gen is controlled through a UART interface.
 
 ## Building
 

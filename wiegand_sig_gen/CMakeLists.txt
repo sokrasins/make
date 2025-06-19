@@ -28,40 +28,40 @@ set(PICO_BOARD pico CACHE STRING "Board type")
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(wiegand-emulator C CXX ASM)
+project(wieg_sig_gen C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(wiegand-emulator 
+add_executable(wieg_sig_gen
     emulator.c 
     src/wiegand.c
     src/cmd.c
 )
 
-pico_set_program_name(wiegand-emulator "wiegand-emulator")
-pico_set_program_version(wiegand-emulator "0.1")
+pico_set_program_name(wieg_sig_gen "wieg_sig_gen")
+pico_set_program_version(wieg_sig_gen "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(wiegand-emulator 1)
-pico_enable_stdio_usb(wiegand-emulator 0)
+pico_enable_stdio_uart(wieg_sig_gen 1)
+pico_enable_stdio_usb(wieg_sig_gen 0)
 
 # Add the standard library to the build
-target_link_libraries(wiegand-emulator
+target_link_libraries(wieg_sig_gen
         pico_stdlib)
 
 # Add the standard include files to the build
-target_include_directories(wiegand-emulator PRIVATE
+target_include_directories(wieg_sig_gen PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/inc
 )
 
 # Add any user requested libraries
-target_link_libraries(wiegand-emulator 
+target_link_libraries(wieg_sig_gen 
         hardware_timer
         )
 
-pico_add_extra_outputs(wiegand-emulator)
+pico_add_extra_outputs(wieg_sig_gen)
 

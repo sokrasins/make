@@ -36,7 +36,7 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(wiegand-emulator 
-    wiegand-emulator.c 
+    emulator.c 
     src/wiegand.c
     src/cmd.c
 )

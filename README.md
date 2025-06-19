@@ -1,5 +1,7 @@
 # Make Roanoke Work
 
+## Organization
+
 ## Set up
 
 Any binary files are tracked via git-lfs. To access:

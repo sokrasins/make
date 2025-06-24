@@ -6,6 +6,7 @@
 - `card_test`: micropython test code to verify wiegand interpretation
 - `docs`: Relevant documents, photos, images, etc. 
 - `wiegand_sig_gen`: RP2040-based wiegand signal generator
+- `cheepcheep`: A C-based rewrite of the beepbeep firmware
 
 ## Set up
 

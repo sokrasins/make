@@ -27,6 +27,7 @@ void app_main(void)
 
     INFO("Setting up gpio");
     status = gpio_init(&config->pins, &config->general);
+    if (status != STATUS_OK) { ERROR("gpio init failed: %d"); }
 
     // Set default pin states
     gpio_out_set(OUTPUT_READER_BUZZER, false);
@@ -34,7 +35,10 @@ void app_main(void)
     
     INFO("Setting up storage");
     status = fs_init();
+    if (status != STATUS_OK) { ERROR("fs init failed: %d"); }
+
     status = nvstate_init();
+    if (status != STATUS_OK) { ERROR("nvstate init failed: %d"); }
 
     if (config->general.wiegand_enabled)
     {
@@ -44,6 +48,7 @@ void app_main(void)
             config->pins.wiegand_one, 
             config->debug.uid_32bit_mode ? WIEG_34_BIT : WIEG_26_BIT
         );
+        if (status != STATUS_OK) { ERROR("wiegand init failed: %d"); }
     }
     else
     {
@@ -53,6 +58,7 @@ void app_main(void)
 
     INFO("Setting up authorized tag db");
     status = tags_init();
+    if (status != STATUS_OK) { ERROR("tags init failed: %d"); }
 
     switch(config->device_type) {
         case DEVICE_DOOR:
@@ -73,6 +79,7 @@ void app_main(void)
 
     INFO("Initializing device");
     status = device->init(config);
+    if (status != STATUS_OK) { ERROR("device init failed: %d"); }
 
     // TODO: the evt handle should be owned by the device, right???
     evt_handle = wieg_evt_handler_reg(WIEG_EVT_NEWCARD, device->swipe_cb, NULL);

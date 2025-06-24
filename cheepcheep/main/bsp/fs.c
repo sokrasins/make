@@ -53,6 +53,11 @@ file_t fs_open(const char *name, const char *type)
 {
     char path[64];
     int rc = sprintf(path, "%s/%s", FS_BASE_PATH, name);
+    if (rc > 64)
+    {
+        return NULL;
+    }
+    
     return (file_t) fopen(path, type);
 }
 

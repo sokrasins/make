@@ -13,10 +13,10 @@ device_t interlock = {
     .swipe_cb = interlock_handle_swipe,
 };
 
-static interlock_session_t _session = {
-    .id = 0,
-    .kwh = 0,
-};
+//static interlock_session_t _session = {
+//    .id = 0,
+//    .kwh = 0,
+//};
 
 static status_t interlock_init(const config_t *config)
 {

@@ -106,7 +106,7 @@ void door_task(void *params)
             if (ctx->config.door_sensor_enabled && ctx->prev_door_open_state)
             {
                 // Check the timeout condition
-                if (ctx->prev_door_open_state && ((uptime - ctx->time_opened) >= (ctx->config.door_sensor_timeout * 1000)))
+                if (ctx->prev_door_open_state && ((uptime() - ctx->time_opened) >= (ctx->config.door_sensor_timeout * 1000)))
                 {
                     INFO("Door sensor timeout! Locking again.");
                     lock_door();

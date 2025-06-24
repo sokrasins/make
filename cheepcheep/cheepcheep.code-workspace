@@ -1,0 +1,44 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"queue.h": "c",
+			"assert.h": "c",
+			"esp_chip_info.h": "c",
+			"wiegand.h": "c",
+			"status.h": "c",
+			"stdint.h": "c",
+			"freertos.h": "c",
+			"task.h": "c",
+			"log.h": "c",
+			"gpio.h": "c",
+			"storage.h": "c",
+			"cjson.h": "c",
+			"typeinfo": "c",
+			"array": "c",
+			"compare": "c",
+			"functional": "c",
+			"ratio": "c",
+			"tuple": "c",
+			"type_traits": "c",
+			"utility": "c",
+			"config.h": "c",
+			"bsp.h": "c",
+			"stdbool.h": "c",
+			"config_defaults.h": "c",
+			"nvs.h": "c",
+			"fs.h": "c",
+			"config_types.h": "c",
+			"device_door.h": "c",
+			"device_vending.h": "c",
+			"device_type_api.h": "c",
+			"device_interlock.h": "c",
+			"nvstate.h": "c",
+			"signal.h": "c"
+		}
+	}
+}

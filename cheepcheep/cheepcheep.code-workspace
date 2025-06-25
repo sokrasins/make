@@ -38,7 +38,13 @@
 			"device_type_api.h": "c",
 			"device_interlock.h": "c",
 			"nvstate.h": "c",
-			"signal.h": "c"
+			"signal.h": "c",
+			"esp_wifi.h": "c",
+			"nvs_flash.h": "c",
+			"err.h": "c",
+			"sys.h": "c",
+			"esp_event.h": "c",
+			"device_secrets.h": "c"
 		}
 	}
 }

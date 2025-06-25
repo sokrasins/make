@@ -10,6 +10,8 @@ static const config_t config = {
     .net = {
         .wifi_ssid = CONFIG_NET_WIFI_SSID,
         .wifi_pass = CONFIG_NET_WIFI_PASS,
+        .wifi_country_code = CONFIG_NET_WIFI_COUNTRY_CODE,
+        .wifi_power = CONFIG_NET_WIFI_TX_POWER,
     },
     .general = {
         .lock_reversed = CONFIG_GEN_LOCK_REVERSED,
@@ -77,8 +79,6 @@ static const config_t config = {
     .debug = {
         .enable_backup_server = CONFIG_DEBUG_ENABLE_BACKUP_SERVER,
         .uid_32bit_mode = CONFIG_DEBUG_UID_32BIT_MODE,
-        .wifi_power = CONFIG_DEBUG_WIFI_TX_POWER,
-        .wifi_country_code = CONFIG_DEBUG_WIFI_COUNTRY_CODE,
         .cron_period = CONFIG_DEBUG_CRON_PERIOD,
     },
 };

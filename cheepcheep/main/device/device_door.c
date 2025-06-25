@@ -4,59 +4,62 @@
 #include "tags.h"
 #include "nvstate.h"
 #include "signal.h"
+#include "wiegand.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 typedef struct {
-    config_general_t config;
+    const config_general_t *config;
     bool prev_door_open_state;
+    bool unlock_door;
     int64_t time_opened;
-    uint32_t last_card_id;
+    int64_t time_unlocked;
+    uint32_t last_card_id; // TODO: debounce reads
+    wieg_evt_handle_t evt_handle;
 } door_ctx_t;
 
+// API
 static status_t door_init(const config_t *config);
 static void door_handle_swipe(wieg_evt_t event, card_t *card, void *ctx);
 
+// Private
 void door_task(void *params);
 static void lock_door(void);
 static void unlock_door(void);
 
 device_t door = {
     .init = door_init,
-    .swipe_cb = door_handle_swipe, 
 };
 
 door_ctx_t _ctx = {
     .prev_door_open_state = false,
     .time_opened = 0,
+    .time_unlocked = 0,
     .last_card_id = 0,
 };
 
 static status_t door_init(const config_t *config)
 {
-    memcpy(&_ctx.config, &config->general, sizeof(config_general_t));
-    
-    signal_init();
-    
+    signal_init(&config->buzzer);
+
+    _ctx.config = &config->general;
+    _ctx.evt_handle = wieg_evt_handler_reg(WIEG_EVT_NEWCARD, door_handle_swipe, (void *)&_ctx);
+
     xTaskCreate(door_task, "Door_Task", 2048, (void *)&_ctx, 1, NULL);
     return STATUS_OK;
 }
 
 static void door_handle_swipe(wieg_evt_t event, card_t *card, void *ctx)
 {
-    INFO("New card:\n");
-    INFO("    facility: %d\n", card->facility);
-    INFO("    user id:  %d\n", card->user_id);
-    INFO("    raw:      %ld\n", card->raw);
+    door_ctx_t *door_ctx = (door_ctx_t *) ctx;
 
-    if (true /*buzz_on_swipe*/)
-    {
-        // hardware.buzz_card_read()
-        gpio_out_set(OUTPUT_READER_BUZZER, true);
-        vTaskDelay(pdMS_TO_TICKS(200));
-        gpio_out_set(OUTPUT_READER_BUZZER, false);
-    }
+    INFO("New card");
+    INFO("    facility: %d", card->facility);
+    INFO("    user id:  %d", card->user_id);
+    INFO("    raw:      %d", card->raw);
+
+    signal_cardread();
 
     if (tags_find(card->raw) == STATUS_OK)
     {
@@ -70,7 +73,7 @@ static void door_handle_swipe(wieg_evt_t event, card_t *card, void *ctx)
         {
             // TODO: Send to websocket when it exists
             //log_door_swipe(card)
-            unlock_door();
+            door_ctx->unlock_door = true;
         }
     }
     else
@@ -88,46 +91,70 @@ void door_task(void *params)
     door_ctx_t *ctx = (door_ctx_t *) params;
     while(true)
     {
-        bool cur_door_state = gpio_in_get(INPUT_DOOR_SENSOR);
-        if (ctx->prev_door_open_state != cur_door_state) 
+        // If requested, unlock the door
+        if (ctx->unlock_door)
         {
-            ctx->prev_door_open_state = cur_door_state;
-            INFO("Door sensor state changed to %u", cur_door_state);
-            if (cur_door_state)
+            unlock_door();
+            ctx->unlock_door = false;
+        }
+
+        // If door sensor is enabled, monitor the door state
+        if (ctx->config->door_sensor_enabled)
+        {
+            // Get the current door state
+            int rc = gpio_in_get(INPUT_DOOR_SENSOR);
+            if (rc < 0)
             {
-                ctx->time_opened = uptime();
+                continue;
             }
-            else
+            bool cur_door_state = (bool) rc;
+            
+            // Check if the door has opened or closed
+            if (ctx->prev_door_open_state != cur_door_state) 
             {
-                ctx->time_opened = 0;
+                ctx->prev_door_open_state = cur_door_state;
+                INFO("Door sensor state changed to %u", cur_door_state);
+                if (cur_door_state)
+                {
+                    ctx->time_opened = uptime();
+                }
+                else
+                {
+                    // Buzzer needs to stop if the open door alarm is on
+                    gpio_out_set(OUTPUT_READER_BUZZER, false);
+                    ctx->time_opened = 0;
+                }
             }
 
-            // If door sensor is enabled and the door is currently open
-            if (ctx->config.door_sensor_enabled && ctx->prev_door_open_state)
+            // If the door was unlocked, check to make sure the door is actually opened
+            if (ctx->time_unlocked != 0)
             {
-                // Check the timeout condition
-                if (ctx->prev_door_open_state && ((uptime() - ctx->time_opened) >= (ctx->config.door_sensor_timeout * 1000)))
+                if ((uptime() - ctx->time_unlocked) >= (ctx->config->door_sensor_timeout * 1000))
                 {
+                    // If the door never dets opened, lock it again
                     INFO("Door sensor timeout! Locking again.");
                     lock_door();
                 }
-                else if (!ctx->prev_door_open_state)
+                else if (ctx->prev_door_open_state)
                 {
+                    // If the door is opened, then lock it for when it closes
                     INFO("Door opened while waiting, locking door in 0.5s");
                     vTaskDelay(pdMS_TO_TICKS(500));
                     lock_door();
                 }
             }
 
-            if (ctx->config.door_open_alarm_timeout != 0 && ctx->prev_door_open_state)
+            // If there's a timeout for the open door, check how long it's been opened
+            if (ctx->config->door_open_alarm_timeout != 0 && ctx->time_opened != 0)
             {
-                if (uptime() - ctx->time_opened >= (ctx->config.door_open_alarm_timeout * 1000))
+                if (uptime() - ctx->time_opened >= (ctx->config->door_open_alarm_timeout * 1000))
                 {
                     WARN("Door left open alarm!");
                     gpio_out_set(OUTPUT_READER_BUZZER, true);
                 }
             }
         }
+        
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
@@ -136,6 +163,7 @@ static void lock_door(void)
 {
     gpio_out_set(OUTPUT_LOCK, true);
     gpio_out_set(OUTPUT_RELAY, false);
+    _ctx.time_unlocked = 0;
     WARN("Locked!");
 }
 
@@ -146,13 +174,15 @@ static void unlock_door(void)
     WARN("Unlocked!");
     signal_ok();
 
-    if (_ctx.config.door_sensor_enabled)
+    if (_ctx.config->door_sensor_enabled)
     {
-        _ctx.time_opened = uptime();
+        // If there's a door sensor, track the state in the task
+        _ctx.time_unlocked = uptime();
     }
     else
     {
-        vTaskDelay(pdMS_TO_TICKS(_ctx.config.fixed_unlock_delay * 1000));
+        // If there's no door sensor, then just keep it open for a bit, then lock it again
+        vTaskDelay(pdMS_TO_TICKS(_ctx.config->fixed_unlock_delay * 1000));
         lock_door();
     }
 }

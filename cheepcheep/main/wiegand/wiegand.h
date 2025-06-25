@@ -18,8 +18,8 @@ typedef enum {
 typedef union {
     uint32_t raw;
     struct __attribute__((packed)) {
-        uint16_t facility;
         uint16_t user_id;
+        uint16_t facility;
     };
 } card_t;
 

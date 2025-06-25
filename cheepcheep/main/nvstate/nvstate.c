@@ -21,7 +21,7 @@ status_t nvstate_init(void)
     ESP_ERROR_CHECK(err);
 
     // Open NVS handle
-    INFO("\nOpening Non-Volatile Storage (NVS) handle...");
+    INFO("Opening Non-Volatile Storage (NVS) handle...");
     err = nvs_open("storage", NVS_READWRITE, &_handle);
     if (err != ESP_OK) {
         ERROR("Error (%s) opening NVS handle!", esp_err_to_name(err));

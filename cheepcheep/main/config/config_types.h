@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#define WIFI_POW_MAX 80
+
 typedef enum {
     DEVICE_DOOR,
     DEVICE_INTERLOCK,
@@ -23,10 +25,6 @@ typedef enum {
     LOG_VERBOSE,
 } log_level_t;
 
-typedef enum {
-    WIFI_POW_MAX,
-} wifi_pow_t;
-
 typedef struct {
     char *ws_url;
     char *api_secret;
@@ -35,6 +33,8 @@ typedef struct {
 typedef struct {
     char *wifi_ssid;
     char *wifi_pass;
+    char *wifi_country_code;
+    int wifi_power;
 } config_network_t;
 
 typedef struct {
@@ -110,8 +110,6 @@ typedef struct {
 typedef struct {
     bool enable_backup_server;
     bool uid_32bit_mode;
-    wifi_pow_t wifi_power;
-    char *wifi_country_code;
     int cron_period;
 } config_debug_t;
 

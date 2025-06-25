@@ -2,14 +2,14 @@
 #define DEVICE_CONFIG_H_
 
 #include "config_types.h"
+#include "device_creds.h"
 
 #define CONFIG_DEVICE_TYPE                  DEVICE_DOOR       
 
 #define CONFIG_PORTAL_WS_URL                "wss:portal.example.com/ws/access"
-#define CONFIG_PORTAL_API_SECRET            "XXXXXXXX.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
-#define CONFIG_NET_WIFI_SSID                "Makerspace WiFi"
-#define CONFIG_NET_WIFI_PASS                "12345678"
+#define CONFIG_NET_WIFI_TX_POWER            WIFI_POW_MAX
+#define CONFIG_NET_WIFI_COUNTRY_CODE        "US"
 
 #define CONFIG_GEN_LOCK_REVERSED            false
 #define CONFIG_GEN_READER_LED_REV           true
@@ -32,8 +32,6 @@
 #define CONFIG_BUZZER_ACTION_DELAY          2
 
 #define CONFIG_INTLCK_HOST                  ""
-#define CONFIG_INTLCK_USER                  "admin"
-#define CONFIG_INTLCK_PASS                  "admin"
 
 #define CONFIG_VEND_PRICE                   250
 #define CONFIG_VEND_MODE                    VENDING_HOLD
@@ -69,8 +67,6 @@
 
 #define CONFIG_DEBUG_ENABLE_BACKUP_SERVER   false
 #define CONFIG_DEBUG_UID_32BIT_MODE         false
-#define CONFIG_DEBUG_WIFI_TX_POWER          WIFI_POW_MAX
-#define CONFIG_DEBUG_WIFI_COUNTRY_CODE      "US"
 #define CONFIG_DEBUG_CRON_PERIOD            10000
 
 #endif /*DEVICE_CONFIG_H_*/

@@ -5,12 +5,14 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#define TAG_HASH_LEN 16U
+
 status_t nvstate_init(void);
 
 bool nvstate_locked_out(void);
 status_t nvstate_locked_out_set(bool locked_out);
 
-status_t nvstate_tag_hash(char *tag_hash, size_t *len);
-status_t nvstate_tag_hash_set(char *tag_hash, size_t len);
+status_t nvstate_tag_hash(uint8_t *tag_hash, size_t *len);
+status_t nvstate_tag_hash_set(uint8_t *tag_hash, size_t len);
 
 #endif /*NVSTATE_H_*/

@@ -87,7 +87,7 @@ status_t wieg_init(int d0, int d1, wieg_encoding_t encode)
 
     // Set up queue for new bits and start task
     _ctx.pin_q = xQueueCreate(_ctx.fmt->total_bits, sizeof(int));
-    xTaskCreate(wieg_task, "Wiegand_Task", 2048, &_ctx, 1, NULL);
+    xTaskCreate(wieg_task, "Wiegand_Task", 4096, &_ctx, 1, NULL);
 
     return STATUS_OK;
 }

@@ -52,7 +52,12 @@
 			"stddef.h": "c",
 			"ws.h": "c",
 			"string.h": "c",
-			"stdio.h": "c"
+			"stdio.h": "c",
+			"client.h": "c",
+			"tags.h": "c",
+			"random": "c",
+			"string": "c",
+			"string_view": "c"
 		}
 	}
 }

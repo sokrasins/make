@@ -61,7 +61,7 @@ file_t fs_open(const char *name, const char *type)
     return (file_t) fopen(path, type);
 }
 
-status_t fs_read(char *data, size_t chars, file_t file)
+status_t fs_read(file_t file, char *data, size_t chars)
 {
     char *ret = fgets(data, chars, (FILE *) file);
     if (ret != data)
@@ -72,6 +72,39 @@ status_t fs_read(char *data, size_t chars, file_t file)
     return STATUS_OK;
 }
 
+status_t fs_readuntil(file_t file, char *data, char limit)
+{
+    char c;
+    do {
+        c = fgetc(file);
+        if (c == (char)255)
+        {
+            return -STATUS_EOF;
+        }
+
+        *data = c;
+        data++;
+    } while (c != limit);
+
+    return STATUS_OK;
+}
+
+status_t fs_write(file_t file, char *data, size_t chars)
+{
+    int rc = fputs(data, (FILE *) file);
+    if (rc < 0)
+    {
+        return -STATUS_IO;
+    }
+
+    return STATUS_OK;
+}
+
+void fs_rewind(file_t file)
+{
+    rewind(file);
+}
+
 status_t fs_close(file_t file)
 {
     int rc = fclose((FILE *) file);
@@ -80,10 +113,13 @@ status_t fs_close(file_t file)
 
 status_t fs_rm(const char *name)
 {
-    int rc = remove(name);
+    char path[64];
+    sprintf(path, "%s/%s", FS_BASE_PATH, name);
+
+    int rc = remove(path);
     if (rc != 0)
     {
-        return -STATUS_NOFILE;
+        return rc;
     }
 
     return STATUS_OK;

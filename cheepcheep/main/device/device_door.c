@@ -5,6 +5,7 @@
 #include "nvstate.h"
 #include "signal.h"
 #include "wiegand.h"
+#include "client.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -61,25 +62,35 @@ static void door_handle_swipe(wieg_evt_t event, card_t *card, void *ctx)
 
     signal_cardread();
 
+    // Consider doin this in a task
     if (tags_find(card->raw) == STATUS_OK)
     {
         if (nvstate_locked_out())
         {
-            // TODO: Send to websocket when it exists
-            //log_door_swipe(card, locked_out=True)
+            msg_t msg = {
+                .type = MSG_ACCESS_LOCKED_OUT,
+                .access_lockout.card_id = card->raw,
+            };
+            client_send_msg(&msg);
             signal_alert();
         }
         else
         {
-            // TODO: Send to websocket when it exists
-            //log_door_swipe(card)
+            msg_t msg = {
+                .type = MSG_ACCESS_GRANTED,
+                .access_granted.card_id = card->raw,
+            };
+            client_send_msg(&msg);
             door_ctx->unlock_door = true;
         }
     }
     else
     {
-        // TODO: Send to websocket when it exists
-        //log_door_swipe(card, rejected=True)
+        msg_t msg = {
+            .type = MSG_ACCESS_DENIED,
+            .access_denied.card_id = card->raw,
+        };
+        client_send_msg(&msg);
         signal_alert();
     }
 

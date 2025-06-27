@@ -32,8 +32,9 @@ status_t nvstate_init(void)
     if (nvs_find_key(_handle, NVS_TAG_HASH_KEY, &out_type) == ESP_ERR_NVS_NOT_FOUND)
     {
         // initialize the key
-        char tag_hash[] = "";
-        nvstate_tag_hash_set(tag_hash, 0);
+        uint8_t tag_hash[16];
+        memset(tag_hash, 0, 16);
+        nvstate_tag_hash_set(tag_hash, 16);
     }
 
     if (nvs_find_key(_handle, NVS_LOCKED_OUT_KEY, &out_type) == ESP_ERR_NVS_NOT_FOUND)
@@ -59,14 +60,14 @@ status_t nvstate_locked_out_set(bool locked_out)
     return STATUS_OK;
 }
 
-status_t nvstate_tag_hash(char *tag_hash, size_t *len)
+status_t nvstate_tag_hash(uint8_t *tag_hash, size_t *len)
 {
-    nvs_get_str(_handle, NVS_TAG_HASH_KEY, tag_hash, len);
+    nvs_get_blob(_handle, NVS_TAG_HASH_KEY, (void *)tag_hash, len);
     return STATUS_OK;
 }
 
-status_t nvstate_tag_hash_set(char *tag_hash, size_t len)
+status_t nvstate_tag_hash_set(uint8_t *tag_hash, size_t len)
 {
-    nvs_set_str(_handle, NVS_TAG_HASH_KEY, tag_hash);
+    nvs_set_blob(_handle, NVS_TAG_HASH_KEY, (void *)tag_hash, len);
     return STATUS_OK;
 }

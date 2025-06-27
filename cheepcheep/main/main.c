@@ -57,12 +57,12 @@ void app_main(void)
         // TODO: Add rdm6300 lib
     }
 
+    INFO("Setting up client");
+    status = client_init(config->device_type, &config->portal, &config->net);
+
     INFO("Setting up authorized tag db");
     status = tags_init();
     if (status != STATUS_OK) { ERROR("tags_init failed: %d"); }
-
-    INFO("Setting up client");
-    status = client_init(config->device_type, &config->portal, &config->net);
 
     switch(config->device_type) {
         case DEVICE_DOOR:

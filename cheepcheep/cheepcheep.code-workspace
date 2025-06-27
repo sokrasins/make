@@ -50,7 +50,9 @@
 			"esp_intr_alloc.h": "c",
 			"event_groups.h": "c",
 			"stddef.h": "c",
-			"ws.h": "c"
+			"ws.h": "c",
+			"string.h": "c",
+			"stdio.h": "c"
 		}
 	}
 }

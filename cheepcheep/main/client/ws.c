@@ -30,8 +30,6 @@ static ws_ctx_t _ctx;
 
 status_t ws_init(char *uri, const config_network_t *net_config)
 {
-    status_t status;
-
     strcpy(_ctx.uri, uri);
     _ctx.handler.cb = NULL;
     
@@ -39,9 +37,13 @@ status_t ws_init(char *uri, const config_network_t *net_config)
     net_init(net_config);
     net_evt_cb_register(NET_EVT_CONNECT, (void *)&_ctx, net_evt_cb);
     net_evt_cb_register(NET_EVT_DISCONNECT, (void *)&_ctx, net_evt_cb);
-    status = net_connect();
 
-    return status;
+    return STATUS_OK;
+}
+
+status_t ws_start(void)
+{
+    return net_start();
 }
 
 status_t ws_evt_cb_register(ws_evt_cb_t cb, void *ctx)

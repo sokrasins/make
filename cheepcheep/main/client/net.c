@@ -48,7 +48,7 @@ status_t net_init(const config_network_t *config)
     return STATUS_OK;
 }
 
-status_t net_connect(void)
+status_t net_start(void)
 {
     status_t status = wifi_connection();
     if (status == STATUS_OK)

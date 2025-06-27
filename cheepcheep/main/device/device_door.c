@@ -32,7 +32,7 @@ device_t door = {
     .init = door_init,
 };
 
-door_ctx_t _ctx = {
+static door_ctx_t _ctx = {
     .prev_door_open_state = false,
     .time_opened = 0,
     .time_unlocked = 0,
@@ -140,7 +140,7 @@ void door_task(void *params)
             {
                 if ((uptime() - ctx->time_unlocked) >= (ctx->config->door_sensor_timeout * 1000))
                 {
-                    // If the door never dets opened, lock it again
+                    // If the door never opens, lock it again
                     INFO("Door sensor timeout! Locking again.");
                     lock_door();
                 }

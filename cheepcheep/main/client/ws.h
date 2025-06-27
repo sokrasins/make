@@ -14,6 +14,8 @@ typedef void (*ws_evt_cb_t)(ws_evt_t evt, cJSON *data, void *ctx);
 
 status_t ws_init(char *uri, const config_network_t *net_config);
 
+status_t ws_start(void);
+
 status_t ws_send(cJSON *msg);
 
 status_t ws_evt_cb_register(ws_evt_cb_t cb, void *ctx);

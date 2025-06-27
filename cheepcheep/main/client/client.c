@@ -10,21 +10,16 @@
 
 #define CLIENT_CMD_HANDLER_MAX 10U
 
+// The server starts to send unparsable messages when the period is 10s
 #define CLIENT_PING_PERIOD 9U //s
 
-// Client management
+// Event handlers
 static void client_ping_timer_cb(TimerHandle_t xTimer);
-void client_handle_inbound_msg(cJSON *msg_in);
-status_t client_send_msg(msg_type_t msg_type, cJSON *root);
 void ws_evt_cb(ws_evt_t evt, cJSON *data, void *ctx);
-void client_build_uri(device_type_t device, char *url, uint8_t *mac, char *uri);
+status_t client_msg_handler(msg_t *msg);
 
-// Local command handling
-status_t ws_cmd_handler(msg_type_t msg_type, cJSON *payload);
-status_t send_authenticate(const char* api_secret);
-status_t send_ipaddr(uint32_t ip);
-status_t send_ping(void);
-status_t send_pong(void);
+// Helpers
+void client_build_uri(device_type_t device, char *url, uint8_t *mac, char *uri);
 
 typedef struct {
     const config_portal_t *config;
@@ -43,7 +38,7 @@ status_t client_init(device_type_t device, const config_portal_t *portal_config,
         _ctx.handlers[i] = NULL;
     }
 
-    client_handler_register(ws_cmd_handler);
+    client_handler_register(client_msg_handler);
 
     // Create ping timer - sends periodic pings to host
     _ctx.ping_timer = xTimerCreate(
@@ -66,6 +61,7 @@ status_t client_init(device_type_t device, const config_portal_t *portal_config,
 
     ws_init(uri, net_config);
     ws_evt_cb_register(ws_evt_cb, (void *)&_ctx);
+    ws_start();
 
     // status led off
 
@@ -85,58 +81,22 @@ status_t client_handler_register(client_cmd_handler_t handler)
     return -STATUS_NOMEM;
 }
 
-status_t client_send_msg(msg_type_t msg_type, cJSON *root)
+status_t client_send_msg(msg_t *msg)
 {
-    cJSON_AddStringToObject(root, "command", msgtype_to_str(msg_type));
-    ws_send(root);
-    return STATUS_OK;
+    status_t status;
+    cJSON *root = cJSON_CreateObject();
+    msg_to_cJSON(msg, root);
+    status = ws_send(root);
+    cJSON_Delete(root);
+    return status;   
 }
 
 static void client_ping_timer_cb(TimerHandle_t xTimer)
 {
-    send_ping();
-}
-
-status_t send_authenticate(const char* api_secret)
-{
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddItemToObject(root, "secret_key", cJSON_CreateString(api_secret));
-    status_t status = client_send_msg(MSG_AUTHENTICATE, root);
-    cJSON_Delete(root);
-    return status;
-}
-
-status_t send_ipaddr(uint32_t ip)
-{
-    char ip_str[32];
-    sprintf(ip_str, "%u.%u.%u.%u", 
-        (uint8_t) ((ip >> 0) & 0xFF), 
-        (uint8_t) ((ip >> 8) & 0xFF), 
-        (uint8_t) ((ip >> 16) & 0xFF), 
-        (uint8_t) ((ip >> 24) & 0xFF)
-    );
-
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddItemToObject(root, "ip_address", cJSON_CreateString(ip_str));
-    status_t status = client_send_msg(MSG_IP_ADDR, root);
-    cJSON_Delete(root);
-    return status;
-}
-
-status_t send_ping(void)
-{
-    cJSON *root = cJSON_CreateObject();
-    status_t status = client_send_msg(MSG_PING, root);
-    cJSON_Delete(root);
-    return status;
-}
-
-status_t send_pong(void)
-{
-    cJSON *root = cJSON_CreateObject();
-    status_t status = client_send_msg(MSG_PONG, root);
-    cJSON_Delete(root);
-    return status;
+    msg_t msg = {
+        .type = MSG_PING,
+    };
+    client_send_msg(&msg);
 }
 
 void ws_evt_cb(ws_evt_t evt, cJSON *data, void *ctx)
@@ -144,74 +104,79 @@ void ws_evt_cb(ws_evt_t evt, cJSON *data, void *ctx)
     client_ctx_t *client_ctx = (client_ctx_t *)ctx;
     switch (evt)
     {
-        case WS_OPEN:
-            send_authenticate(client_ctx->config->api_secret);
+        case WS_OPEN: {
+            msg_t msg = {
+                .type = MSG_AUTHENTICATE,
+                .authenticate.secret_key = client_ctx->config->api_secret,
+            };
+            client_send_msg(&msg);
             break;
+        }
 
         case WS_CLOSE:
-
+            // TODO: reconnect?
             break;
 
         case WS_MSG:
-            client_handle_inbound_msg(data);
+        {
+            // Parse in-bound message
+            msg_t msg;
+            msg_from_cJSON(data, &msg);
+
+            // Send message to handlers
+            for (int i=0; i<CLIENT_CMD_HANDLER_MAX; i++)
+            {
+                if (_ctx.handlers[i] != NULL)
+                {
+                    if (_ctx.handlers[i](&msg) == STATUS_OK)
+                    {
+                        break;
+                    }
+                }
+            }
             break;
+        }
     }
 }
 
-status_t ws_cmd_handler(msg_type_t msg_type, cJSON *payload)
+status_t client_msg_handler(msg_t *msg)
 {
-    if (msg_type == MSG_PING)
+    if (msg->type == MSG_PING)
     {
         INFO("Ping received");
-        send_pong();
-        return STATUS_OK;
+        msg_t msg = {
+            .type = MSG_PONG,
+        };
+        return client_send_msg(&msg);
     }
-    if (msg_type == MSG_PONG)
+    if (msg->type == MSG_PONG)
     {
         INFO("Pong received");
         return STATUS_OK;
     }
-    if (msg_type == MSG_AUTHORISED)
+    if (msg->type == MSG_AUTHORISED)
     {
-        INFO("Device authorized, sending IP");
-        send_ipaddr(net_get_ip());
+        if (msg->authorised.authorised)
+        {
+            DEBUG("Device authorized, sending IP");
+        
+            msg_t msg = {
+                .type = MSG_IP_ADDR,
+                .ip_address.ip_address = net_get_ip(),
+            };
+            client_send_msg(&msg);
 
-        // Start pinging the websocket server
-        xTimerStart(_ctx.ping_timer, portMAX_DELAY);    
+            // Start pinging the websocket server
+            xTimerStart(_ctx.ping_timer, portMAX_DELAY);
+        }
+        else
+        {
+            ERROR("Device is not authorized");
+        }    
         return STATUS_OK;
     }
 
     return -STATUS_INVALID;
-}
-
-void client_handle_inbound_msg(cJSON *msg_in)
-{
-    // Parse command type
-    msg_type_t msg_type = MSG_INVALID;
-    if (cJSON_HasObjectItem(msg_in, "authorised"))
-    { 
-        msg_type = MSG_AUTHORISED; 
-    }
-    else
-    {
-        cJSON *msg_type_json = cJSON_GetObjectItem(msg_in, "command");
-        if (msg_type_json)
-        {
-            msg_type = str_to_msgtype(msg_type_json->valuestring);
-        }
-    }
-
-    // Send command to handlers
-    for (int i=0; i<CLIENT_CMD_HANDLER_MAX; i++)
-    {
-        if (_ctx.handlers[i] != NULL)
-        {
-            if (_ctx.handlers[i](msg_type, msg_in) == STATUS_OK)
-            {
-                break;
-            }
-        }
-    }
 }
 
 void client_build_uri(device_type_t device, char *url, uint8_t *mac, char *uri)

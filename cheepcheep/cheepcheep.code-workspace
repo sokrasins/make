@@ -44,7 +44,13 @@
 			"err.h": "c",
 			"sys.h": "c",
 			"esp_event.h": "c",
-			"device_secrets.h": "c"
+			"device_secrets.h": "c",
+			"device.h": "c",
+			"cstring": "c",
+			"esp_intr_alloc.h": "c",
+			"event_groups.h": "c",
+			"stddef.h": "c",
+			"ws.h": "c"
 		}
 	}
 }

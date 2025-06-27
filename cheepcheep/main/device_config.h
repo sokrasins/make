@@ -6,7 +6,7 @@
 
 #define CONFIG_DEVICE_TYPE                  DEVICE_DOOR       
 
-#define CONFIG_PORTAL_WS_URL                "wss:portal.example.com/ws/access"
+#define CONFIG_PORTAL_WS_URL                "ws://192.168.5.209:8000/ws/access"
 
 #define CONFIG_NET_WIFI_TX_POWER            WIFI_POW_MAX
 #define CONFIG_NET_WIFI_COUNTRY_CODE        "US"
@@ -15,7 +15,7 @@
 #define CONFIG_GEN_READER_LED_REV           true
 #define CONFIG_GEN_RELAY_REV                false
 #define CONFIG_GEN_DOOR_SENSOR_REV          true
-#define CONFIG_GEN_DOOR_SENSOR_EN           true
+#define CONFIG_GEN_DOOR_SENSOR_EN           false
 #define CONFIG_GEN_DOOR_SENSOR_TIMEOUT      5
 #define CONFIG_GEN_DOOR_OPEN_ALARM_TIMEOUT  0
 #define CONFIG_GEN_OUT1_REV                 false

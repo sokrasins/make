@@ -17,9 +17,18 @@
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
 
+#define NET_EVT_HANDLERS_NUM 10
+
+typedef struct {
+    net_evt_t evt;
+    void *ctx;
+    net_evt_cb_t cb;
+} net_evt_handler_t;
+
 static status_t wifi_connection(void);
 static void net_task(void *params);
 
+net_evt_handler_t _handlers[NET_EVT_HANDLERS_NUM];
 static const config_network_t *_config;
 static EventGroupHandle_t wifi_event_group;
 int retry_num = 0;
@@ -28,17 +37,41 @@ esp_ip4_addr_t _ip;
 
 status_t net_init(const config_network_t *config)
 {
-    status_t status;
     _config = config;
     wifi_event_group = xEventGroupCreate();
 
-    status = wifi_connection();
+    for (int i=0; i<NET_EVT_HANDLERS_NUM; i++)
+    {
+        _handlers[i].cb = NULL;
+    }
 
+    return STATUS_OK;
+}
+
+status_t net_connect(void)
+{
+    status_t status = wifi_connection();
     if (status == STATUS_OK)
     {
-        xTaskCreate(net_task, "Net_Task", 2048, NULL, 3, NULL);
+        xTaskCreate(net_task, "Net_Task", 4096, NULL, 3, NULL);
     }
-    return status;
+    return status;    
+}
+
+net_evt_handle_t net_evt_cb_register(net_evt_t evt, void *ctx, net_evt_cb_t cb)
+{
+    for (int i=0; i<NET_EVT_HANDLERS_NUM; i++)
+    {
+        net_evt_handler_t *handler = &_handlers[i];
+        if (handler->cb == NULL)
+        {
+            handler->evt = evt;
+            handler->ctx = ctx;
+            handler->cb = cb;
+            return (net_evt_handle_t) handler;
+        }
+    }
+    return NULL;
 }
 
 static void event_handler(void* arg, esp_event_base_t event_base,
@@ -148,10 +181,28 @@ static void net_task(void *params)
         if (bits & WIFI_CONNECTED_BIT) 
         {
             INFO("connected to ap SSID: %s", _config->wifi_ssid);
+
+            for (int i=0; i<NET_EVT_HANDLERS_NUM; i++)
+            {
+                net_evt_handler_t *handler = &_handlers[i];
+                if (handler->evt == NET_EVT_CONNECT && handler->cb != NULL)
+                {
+                    handler->cb(NET_EVT_CONNECT, handler->ctx);
+                }
+            }
         } 
         else if (bits & WIFI_FAIL_BIT) 
         {
             ERROR("Failed to connect to SSID: %s", _config->wifi_ssid);
+
+            for (int i=0; i<NET_EVT_HANDLERS_NUM; i++)
+            {
+                net_evt_handler_t *handler = &_handlers[i];
+                if (handler->evt == NET_EVT_DISCONNECT && handler->cb != NULL)
+                {
+                    handler->cb(NET_EVT_DISCONNECT, handler->ctx);
+                }
+            }
         } 
         else 
         {

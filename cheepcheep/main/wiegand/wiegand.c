@@ -174,7 +174,6 @@ void wieg_task(void *params)
                 }
 
                 // Clear data to prepare for new card
-                INFO("Clearing");
                 bits = 0;
                 ptr = ctx->fmt->total_bits;
             }

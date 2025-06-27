@@ -55,8 +55,8 @@ static void door_handle_swipe(wieg_evt_t event, card_t *card, void *ctx)
     door_ctx_t *door_ctx = (door_ctx_t *) ctx;
 
     INFO("New card");
-    INFO("    facility: %d", card->facility);
-    INFO("    user id:  %d", card->user_id);
+    INFO("    facility: 0x%hx", card->facility);
+    INFO("    user id:  0x%hx", card->user_id);
     INFO("    raw:      %d", card->raw);
 
     signal_cardread();
@@ -98,6 +98,15 @@ void door_task(void *params)
             ctx->unlock_door = false;
         }
 
+        // If door sensor is not enabled, close door after fixed time
+        if(!ctx->config->door_sensor_enabled && ctx->time_unlocked != 0)
+        {
+            if ((uptime() - ctx->time_unlocked) >= (_ctx.config->fixed_unlock_delay * 1000))
+            {
+                lock_door();
+            }
+        }
+
         // If door sensor is enabled, monitor the door state
         if (ctx->config->door_sensor_enabled)
         {
@@ -137,7 +146,7 @@ void door_task(void *params)
                 }
                 else if (ctx->prev_door_open_state)
                 {
-                    // If the door is opened, then lock it for when it closes
+                    // If the door is opened, then re-lock it
                     INFO("Door opened while waiting, locking door in 0.5s");
                     vTaskDelay(pdMS_TO_TICKS(500));
                     lock_door();
@@ -174,15 +183,5 @@ static void unlock_door(void)
     WARN("Unlocked!");
     signal_ok();
 
-    if (_ctx.config->door_sensor_enabled)
-    {
-        // If there's a door sensor, track the state in the task
-        _ctx.time_unlocked = uptime();
-    }
-    else
-    {
-        // If there's no door sensor, then just keep it open for a bit, then lock it again
-        vTaskDelay(pdMS_TO_TICKS(_ctx.config->fixed_unlock_delay * 1000));
-        lock_door();
-    }
+    _ctx.time_unlocked = uptime();
 }

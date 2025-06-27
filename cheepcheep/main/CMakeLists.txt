@@ -13,7 +13,10 @@ SRCS
     "device/device_vending.c"
     "tags/tags.c"
     "signal/signal.c"
-    "net/net.c"
+    "client/net.c"
+    "client/ws.c"
+    "client/client.c"
+    "client/msg.c"
 INCLUDE_DIRS 
     "."
     "wiegand"
@@ -24,7 +27,7 @@ INCLUDE_DIRS
     "device"
     "tags"
     "signal"
-    "net"
+    "client"
     )
 
 # Note: you must have a partition named the first argument (here it's "littlefs")

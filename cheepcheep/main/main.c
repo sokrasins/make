@@ -14,7 +14,7 @@
 #include "nvstate.h"
 #include "device.h"
 #include "tags.h"
-#include "net.h"
+#include "client.h"
 
 device_t *device;
 const config_t *config;
@@ -61,8 +61,8 @@ void app_main(void)
     status = tags_init();
     if (status != STATUS_OK) { ERROR("tags_init failed: %d"); }
 
-    INFO("Setting up wifi");
-    status = net_init(&config->net);
+    INFO("Setting up client");
+    status = client_init(config->device_type, &config->portal, &config->net);
 
     switch(config->device_type) {
         case DEVICE_DOOR:

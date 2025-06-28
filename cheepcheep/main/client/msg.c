@@ -29,6 +29,7 @@
 // Helpers
 msg_type_t str_to_msgtype(char *msg_type_str);
 char *msgtype_to_str(msg_type_t msg);
+status_t hexstr_to_bytes(char *str, size_t bytes, uint8_t *buf);
 
 status_t msg_to_cJSON(msg_t *msg, cJSON *json)
 {
@@ -144,6 +145,7 @@ status_t msg_from_cJSON(cJSON *json, msg_t *msg)
             if (payload_val)
             {
                 // TODO: convert string to hex bytes
+                hexstr_to_bytes(payload_val->valuestring, 16, msg->sync.hash);
             }
             payload_val = cJSON_GetObjectItem(json, "tags");
             msg->sync.tags = payload_val; // To be parsed by the handler
@@ -237,4 +239,16 @@ char *msgtype_to_str(msg_type_t msg)
     if (MSG_ACCESS_LOCKED_OUT == msg)   { return MSG_ACCESS_LOCKED_OUT_STR; }
     if (MSG_ACCESS_GRANTED == msg)      { return MSG_ACCESS_GRANTED_STR; }
     return NULL;
+}
+
+status_t hexstr_to_bytes(char *str, size_t bytes, uint8_t *buf)
+{
+    char *pos = str;
+    
+    for (size_t count = 0; count < bytes; count++) {
+        sscanf(pos, "%2hhx", &buf[count]);
+        pos += 2;
+    }
+
+    return STATUS_OK;
 }

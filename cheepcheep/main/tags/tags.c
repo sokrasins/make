@@ -45,10 +45,9 @@ status_t tag_sync_handler(msg_t *msg)
     if (msg->type == MSG_SYNC)
     {
         // Get the existing hash
-        // TODO: Doesn't work
         // TODO: Calculate instead of storing
-        uint8_t cur_hash[TAG_HASH_LEN];
         size_t hash_len;
+        uint8_t cur_hash[TAG_HASH_LEN];
         nvstate_tag_hash(cur_hash, &hash_len);
 
         // Only update the tags if the hashes are different

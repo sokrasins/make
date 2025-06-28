@@ -8,6 +8,4 @@ status_t tags_init(void);
 
 status_t tags_find(uint32_t raw);
 
-status_t tags_update(uint32_t *tags, size_t num_tags, uint8_t hash);
-
 #endif /*TAGS_H_*/

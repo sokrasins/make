@@ -8,13 +8,15 @@
 
 #include <stdio.h>
 
+#define TAGS_FILENAME "tags.json"
+
 status_t tag_sync_handler(msg_t *msg);
 
 file_t tag_file;
 
 status_t tags_init(void)
 {
-    tag_file = fs_open("tags.json", "r");
+    tag_file = fs_open(TAGS_FILENAME, "r");
 
     // TODO: verify hash
     return client_handler_register(tag_sync_handler);
@@ -53,15 +55,15 @@ status_t tag_sync_handler(msg_t *msg)
         // Only update the tags if the hashes are different
         if (memcmp(cur_hash, msg->sync.hash, TAG_HASH_LEN) != 0)
         {
-            WARN("New tag list received, saving...");
+            WARN("New authorized card list received, saving...");
             char file_line[16];
 
             status_t status = fs_close(tag_file);
-            status = fs_rm("tags.json");
-            file_t new_file = fs_open("tags.json", "w");
+            status = fs_rm(TAGS_FILENAME);
+            file_t new_file = fs_open(TAGS_FILENAME, "w");
             if (new_file == 0)
             {
-                ERROR("Couldn't save new tags");
+                ERROR("Couldn't save new cards");
                 return STATUS_OK;
             }
 
@@ -72,19 +74,19 @@ status_t tag_sync_handler(msg_t *msg)
                 status = fs_write(new_file, file_line, len);
             }
 
-            // Roopen the file as read-only
+            // Reopen the file as read-only
             fs_close(new_file);
-            tag_file = fs_open("tags.json", "r");
+            tag_file = fs_open(TAGS_FILENAME, "r");
 
             // Store the curernt hash
             // TODO: Calculate in the future?
             nvstate_tag_hash_set(msg->sync.hash, TAG_HASH_LEN);
 
-            WARN("Done saving tags");
+            WARN("Done saving cards");
         }
         else
         {
-            WARN("Tag list is the same, skipping");
+            WARN("Authorized card list matches the stored list, skipping write");
         }
         return STATUS_OK;
     }

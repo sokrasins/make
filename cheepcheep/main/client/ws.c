@@ -38,6 +38,8 @@ status_t ws_init(char *uri, const config_network_t *net_config)
     net_evt_cb_register(NET_EVT_CONNECT, (void *)&_ctx, net_evt_cb);
     net_evt_cb_register(NET_EVT_DISCONNECT, (void *)&_ctx, net_evt_cb);
 
+    esp_log_level_set("websocket_client", ESP_LOG_WARN);
+
     return STATUS_OK;
 }
 
@@ -99,7 +101,7 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
         break;
 
     case WEBSOCKET_EVENT_CONNECTED:
-        INFO("WEBSOCKET_EVENT_CONNECTED");
+        INFO("Websocket Connected");
         if (_ctx.handler.cb != NULL)
         {
             _ctx.handler.cb(WS_OPEN, NULL, _ctx.handler.ctx);
@@ -107,7 +109,7 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
         break;
 
     case WEBSOCKET_EVENT_DISCONNECTED:
-        INFO("WEBSOCKET_EVENT_DISCONNECTED");
+        INFO("Websocket Disconnected");
         ERROR("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
         if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) 
         {
@@ -122,11 +124,12 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
         break;
 
     case WEBSOCKET_EVENT_DATA:
-        INFO("WEBSOCKET_EVENT_DATA");
-        INFO("Received opcode=%d", data->op_code);
+        //INFO("WEBSOCKET_EVENT_DATA");
+        //INFO("Received opcode=%d", data->op_code);
         if (data->op_code == 0x2) 
         {
-            ESP_LOG_BUFFER_HEX("Received binary data", data->data_ptr, data->data_len);
+            ERROR("Unexpected binary data");
+            //ESP_LOG_BUFFER_HEX("Received binary data", data->data_ptr, data->data_len);
         } 
         else if (data->op_code == 0x08 && data->data_len == 2) 
         {
@@ -134,7 +137,7 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
         } 
         else 
         {
-            WARN("Received=%.*s", data->data_len, (char *)data->data_ptr);
+            DEBUG("Received=%.*s", data->data_len, (char *)data->data_ptr);
         }
 
         // Try to parse a json payload. If we succeed, then send it to be parsed further.
@@ -150,7 +153,7 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
         break;
 
     case WEBSOCKET_EVENT_ERROR:
-        INFO("WEBSOCKET_EVENT_ERROR");
+        INFO("Websocket Error");
         ERROR("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
         if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) 
         {

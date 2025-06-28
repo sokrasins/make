@@ -45,6 +45,10 @@ status_t net_init(const config_network_t *config)
         _handlers[i].cb = NULL;
     }
 
+    esp_log_level_set("wifi", ESP_LOG_WARN);
+    esp_log_level_set("wifi_init", ESP_LOG_WARN);
+    esp_log_level_set("esp_netif_handlers", ESP_LOG_WARN);
+
     return STATUS_OK;
 }
 
@@ -99,7 +103,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) 
     {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-        INFO("got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+        INFO("IP address assigned: " IPSTR, IP2STR(&event->ip_info.ip));
         retry_num = 0;
         connected = true;
         memcpy(&_ip, &event->ip_info.ip, sizeof(_ip));

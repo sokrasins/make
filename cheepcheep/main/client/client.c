@@ -175,6 +175,10 @@ status_t client_msg_handler(msg_t *msg)
         }    
         return STATUS_OK;
     }
+    if (msg->type == MSG_REBOOT)
+    {
+        esp_restart();
+    }
 
     return -STATUS_INVALID;
 }

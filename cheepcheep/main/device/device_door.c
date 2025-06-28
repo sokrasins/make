@@ -28,6 +28,7 @@ static void door_handle_swipe(wieg_evt_t event, card_t *card, void *ctx);
 void door_task(void *params);
 static void lock_door(void);
 static void unlock_door(void);
+static status_t client_cmd_handler(msg_t *msg);
 
 device_t door = {
     .init = door_init,
@@ -46,6 +47,9 @@ static status_t door_init(const config_t *config)
 
     _ctx.config = &config->general;
     _ctx.evt_handle = wieg_evt_handler_reg(WIEG_EVT_NEWCARD, door_handle_swipe, (void *)&_ctx);
+
+    // Register cb for server requests
+    client_handler_register(client_cmd_handler);
 
     xTaskCreate(door_task, "Door_Task", 2048, (void *)&_ctx, 1, NULL);
     return STATUS_OK;
@@ -195,4 +199,30 @@ static void unlock_door(void)
     signal_ok();
 
     _ctx.time_unlocked = uptime();
+}
+
+static status_t client_cmd_handler(msg_t *msg)
+{
+    status_t status = -STATUS_UNAVAILABLE;
+
+    if (msg->type == MSG_BUMP)
+    {
+        WARN("BUMP!");
+        _ctx.unlock_door = true;
+        status = STATUS_OK;
+    }
+    if (msg->type == MSG_UNLOCK)
+    {
+        WARN("UNLOCK!");
+        gpio_out_set(OUTPUT_LOCK, false);
+        status = STATUS_OK;
+    }
+    if (msg->type == MSG_LOCK)
+    {
+        WARN("LOCK!");
+        gpio_out_set(OUTPUT_LOCK, true);
+        status = STATUS_OK;
+    }
+
+    return status;
 }

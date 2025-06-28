@@ -19,6 +19,8 @@
 device_t *device;
 const config_t *config;
 
+static status_t server_cmd_handler(msg_t *msg);
+
 void app_main(void)
 {
     status_t status;
@@ -59,6 +61,7 @@ void app_main(void)
 
     INFO("Setting up client");
     status = client_init(config->device_type, &config->portal, &config->net);
+    client_handler_register(server_cmd_handler);
 
     INFO("Setting up authorized tag db");
     status = tags_init();
@@ -92,4 +95,22 @@ void app_main(void)
     {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
+}
+
+static status_t server_cmd_handler(msg_t *msg)
+{
+    status_t status = -STATUS_INVALID;
+    if (msg->type == MSG_REBOOT)
+    {
+        esp_restart();
+        status = STATUS_OK;
+    }
+    if (msg->type == MSG_UPDATE_LOCKOUT)
+    {
+        WARN("Updating lockout setting to %u", msg->update_lockout.locked_out);
+        nvstate_locked_out_set(msg->update_lockout.locked_out);
+        status = STATUS_OK;
+    }
+
+    return status;
 }

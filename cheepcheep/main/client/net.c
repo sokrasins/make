@@ -49,6 +49,15 @@ status_t net_init(const config_network_t *config)
     esp_log_level_set("wifi_init", ESP_LOG_WARN);
     esp_log_level_set("esp_netif_handlers", ESP_LOG_WARN);
 
+    // Set up the itf
+    esp_netif_init();
+    esp_event_loop_create_default();
+    esp_netif_create_default_wifi_sta();
+    
+    // Start wifi
+    wifi_init_config_t wifi_initiation = WIFI_INIT_CONFIG_DEFAULT();
+    esp_wifi_init(&wifi_initiation);
+
     return STATUS_OK;
 }
 
@@ -115,15 +124,6 @@ static status_t wifi_connection(void)
 {
     esp_event_handler_instance_t instance_any_id;
     esp_event_handler_instance_t instance_got_ip;
-
-    // Set up the itf
-    esp_netif_init();
-    esp_event_loop_create_default();
-    esp_netif_create_default_wifi_sta();
-    
-    // Start wifi
-    wifi_init_config_t wifi_initiation = WIFI_INIT_CONFIG_DEFAULT();
-    esp_wifi_init(&wifi_initiation);
     
     // Register our event handler
     esp_event_handler_instance_register(

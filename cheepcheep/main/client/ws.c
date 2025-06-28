@@ -28,9 +28,8 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
 
 static ws_ctx_t _ctx;
 
-status_t ws_init(char *uri, const config_network_t *net_config)
+status_t ws_init(const config_network_t *net_config)
 {
-    strcpy(_ctx.uri, uri);
     _ctx.handler.cb = NULL;
     
     // Set up the network connection
@@ -43,8 +42,9 @@ status_t ws_init(char *uri, const config_network_t *net_config)
     return STATUS_OK;
 }
 
-status_t ws_start(void)
+status_t ws_start(char *uri)
 {
+    strcpy(_ctx.uri, uri);
     return net_start();
 }
 
@@ -71,7 +71,7 @@ status_t ws_send(cJSON *msg)
 status_t ws_connect(esp_websocket_client_handle_t *client, char *uri)
 {
     esp_websocket_client_config_t ws_cfg = {
-        .uri = "ws://192.168.5.209:8000/ws/access/door/743ee316a398",
+        .uri = uri,
         .skip_cert_common_name_check = true,
         .crt_bundle_attach = esp_crt_bundle_attach,
         .reconnect_timeout_ms = 30000,

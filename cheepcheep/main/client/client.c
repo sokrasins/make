@@ -53,15 +53,16 @@ status_t client_init(device_type_t device, const config_portal_t *portal_config,
         return -STATUS_NOMEM;
     }
 
+    ws_init(net_config);
+    ws_evt_cb_register(ws_evt_cb, (void *)&_ctx);
+
     // Build the uri for the websocket server
     char uri[128];
     uint8_t mac[6];
-    net_get_mac(mac);
+    net_get_mac(mac); // TODO: This is only valid when wifi is initialized
     client_build_uri(device, _ctx.config->ws_url, mac, uri);
 
-    ws_init(uri, net_config);
-    ws_evt_cb_register(ws_evt_cb, (void *)&_ctx);
-    ws_start();
+    ws_start(uri);
 
     // status led off
 
@@ -175,10 +176,6 @@ status_t client_msg_handler(msg_t *msg)
         }    
         return STATUS_OK;
     }
-    if (msg->type == MSG_REBOOT)
-    {
-        esp_restart();
-    }
 
     return -STATUS_INVALID;
 }
@@ -204,6 +201,8 @@ void client_build_uri(device_type_t device, char *url, uint8_t *mac, char *uri)
     }
     
     // Assemble the websocket uri
-    sprintf(mac_str, "%02x%02x%02x%02x%02x%02x", mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
+    sprintf(mac_str, "%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    INFO("mac: %s", mac_str);
     sprintf(uri, "%s/%s/%s", url, dev_str, mac_str);
+    INFO("url: %s", uri);
 }

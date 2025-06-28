@@ -143,7 +143,7 @@ status_t client_msg_handler(msg_t *msg)
 {
     if (msg->type == MSG_PING)
     {
-        INFO("Ping received");
+        DEBUG("Ping received");
         msg_t msg = {
             .type = MSG_PONG,
         };
@@ -151,7 +151,7 @@ status_t client_msg_handler(msg_t *msg)
     }
     if (msg->type == MSG_PONG)
     {
-        INFO("Pong received");
+        DEBUG("Pong received");
         return STATUS_OK;
     }
     if (msg->type == MSG_AUTHORISED)

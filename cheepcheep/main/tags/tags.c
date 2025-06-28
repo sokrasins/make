@@ -52,10 +52,12 @@ status_t tag_sync_handler(msg_t *msg)
         uint8_t cur_hash[TAG_HASH_LEN];
         nvstate_tag_hash(cur_hash, &hash_len);
 
+        INFO("New authorized card list received");
+
         // Only update the tags if the hashes are different
         if (memcmp(cur_hash, msg->sync.hash, TAG_HASH_LEN) != 0)
         {
-            WARN("New authorized card list received, saving...");
+            WARN("saving...");
             char file_line[16];
 
             status_t status = fs_close(tag_file);
@@ -86,7 +88,7 @@ status_t tag_sync_handler(msg_t *msg)
         }
         else
         {
-            WARN("Authorized card list matches the stored list, skipping write");
+            INFO("Hash matches stored, skip write");
         }
         return STATUS_OK;
     }

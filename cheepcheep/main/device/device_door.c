@@ -207,19 +207,19 @@ static status_t client_cmd_handler(msg_t *msg)
 
     if (msg->type == MSG_BUMP)
     {
-        WARN("BUMP!");
+        WARN("Door bumped!");
         _ctx.unlock_door = true;
         status = STATUS_OK;
     }
     if (msg->type == MSG_UNLOCK)
     {
-        WARN("UNLOCK!");
+        WARN("Door Unlocked!");
         gpio_out_set(OUTPUT_LOCK, false);
         status = STATUS_OK;
     }
     if (msg->type == MSG_LOCK)
     {
-        WARN("LOCK!");
+        WARN("Door Locked!");
         gpio_out_set(OUTPUT_LOCK, true);
         status = STATUS_OK;
     }

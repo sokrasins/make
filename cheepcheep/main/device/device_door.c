@@ -51,7 +51,7 @@ static status_t door_init(const config_t *config)
     // Register cb for server requests
     client_handler_register(client_cmd_handler);
 
-    xTaskCreate(door_task, "Door_Task", 2048, (void *)&_ctx, 1, NULL);
+    xTaskCreate(door_task, "Door_Task", 4096, (void *)&_ctx, 1, NULL);
     return STATUS_OK;
 }
 

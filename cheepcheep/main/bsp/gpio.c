@@ -2,6 +2,8 @@
 #include "log.h"
 
 #include "driver/gpio.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #define GPIO_NULL_PIN 0xFF
 
@@ -50,6 +52,11 @@ status_t gpio_init(const config_pins_t *pins, const config_general_t *gen)
 
     gpio_set_pull_mode(_input_pins[INPUT_AUX1].pin, GPIO_PULLDOWN_ONLY);
     gpio_set_pull_mode(_input_pins[INPUT_AUX2].pin, GPIO_PULLDOWN_ONLY);
+
+    // Debug pulse, used to detect reboots
+    //gpio_out_set(OUTPUT_OUT1, true);
+    //vTaskDelay(pdMS_TO_TICKS(10));
+    //gpio_out_set(OUTPUT_OUT1, false);
 
     return STATUS_OK;
 }

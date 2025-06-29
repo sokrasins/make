@@ -137,7 +137,7 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
         } 
         else 
         {
-            DEBUG("Received=%.*s", data->data_len, (char *)data->data_ptr);
+            INFO("Received=%.*s", data->data_len, (char *)data->data_ptr);
         }
 
         // Try to parse a json payload. If we succeed, then send it to be parsed further.

@@ -35,6 +35,7 @@ void app_main(void)
     // Set default pin states
     gpio_out_set(OUTPUT_READER_BUZZER, false);
     gpio_out_set(OUTPUT_READER_LED, false);
+    gpio_out_set(OUTPUT_LOCK, true);
     
     INFO("Setting up storage");
     status = fs_init();

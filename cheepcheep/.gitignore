@@ -3,3 +3,4 @@ managed_components
 .vscode
 .devcontainer
 main/device_creds.h
+main/device_creds_home.h

@@ -9,7 +9,7 @@
 #define CONFIG_NET_WIFI_TX_POWER            WIFI_POW_MAX
 #define CONFIG_NET_WIFI_COUNTRY_CODE        "US"
 
-#define CONFIG_GEN_LOCK_REVERSED            true
+#define CONFIG_GEN_LOCK_REVERSED            false
 #define CONFIG_GEN_READER_LED_REV           true
 #define CONFIG_GEN_RELAY_REV                false
 #define CONFIG_GEN_DOOR_SENSOR_REV          true

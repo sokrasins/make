@@ -58,6 +58,11 @@ status_t gpio_init(const config_pins_t *pins, const config_general_t *gen)
     //vTaskDelay(pdMS_TO_TICKS(10));
     //gpio_out_set(OUTPUT_OUT1, false);
 
+    // Set default pin states
+    gpio_out_set(OUTPUT_READER_BUZZER, false);
+    gpio_out_set(OUTPUT_READER_LED, false);
+    gpio_out_set(OUTPUT_LOCK, false);
+    
     return STATUS_OK;
 }
 

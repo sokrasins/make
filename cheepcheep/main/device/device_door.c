@@ -185,7 +185,7 @@ void door_task(void *params)
 
 static void lock_door(void)
 {
-    gpio_out_set(OUTPUT_LOCK, true);
+    gpio_out_set(OUTPUT_LOCK, false);
     gpio_out_set(OUTPUT_RELAY, false);
     _ctx.time_unlocked = 0;
     WARN("Locked!");
@@ -193,7 +193,7 @@ static void lock_door(void)
 
 static void unlock_door(void)
 {
-    gpio_out_set(OUTPUT_LOCK, false);
+    gpio_out_set(OUTPUT_LOCK, true);
     gpio_out_set(OUTPUT_RELAY, true);
     WARN("Unlocked!");
     signal_ok();
@@ -214,13 +214,13 @@ static status_t client_cmd_handler(msg_t *msg)
     if (msg->type == MSG_UNLOCK)
     {
         WARN("Door Unlocked!");
-        gpio_out_set(OUTPUT_LOCK, false);
+        gpio_out_set(OUTPUT_LOCK, true);
         status = STATUS_OK;
     }
     if (msg->type == MSG_LOCK)
     {
         WARN("Door Locked!");
-        gpio_out_set(OUTPUT_LOCK, true);
+        gpio_out_set(OUTPUT_LOCK, false);
         status = STATUS_OK;
     }
 

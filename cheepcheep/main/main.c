@@ -32,11 +32,6 @@ void app_main(void)
     status = gpio_init(&config->pins, &config->general);
     if (status != STATUS_OK) { ERROR("gpio_init failed: %d"); }
 
-    // Set default pin states
-    gpio_out_set(OUTPUT_READER_BUZZER, false);
-    gpio_out_set(OUTPUT_READER_LED, false);
-    gpio_out_set(OUTPUT_LOCK, true);
-    
     INFO("Setting up storage");
     status = fs_init();
     if (status != STATUS_OK) { ERROR("fs_init failed: %d"); }

@@ -54,6 +54,9 @@ status_t tag_sync_handler(msg_t *msg)
 
         INFO("New authorized card list received");
 
+        // When flashing the device, the hash will remain but the card table will be deleted. 
+        // TODO: Fix this
+
         // Only update the tags if the hashes are different
         if (memcmp(cur_hash, msg->sync.hash, TAG_HASH_LEN) != 0)
         {

@@ -4,6 +4,6 @@
 #include "pindefs.h"
 #include "fs.h"
 #include "gpio.h"
-#include "time.h"
+#include "uptime.h"
 
 #endif /*BSP_H_*/

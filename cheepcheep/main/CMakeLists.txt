@@ -3,7 +3,7 @@ SRCS
     "main.c"
     "bsp/fs.c"
     "bsp/gpio.c"
-    "bsp/time.c"
+    "bsp/uptime.c"
     "config/config.c"
     "wiegand/wiegand.c"
     "wiegand/wiegand_fmt.c"

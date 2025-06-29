@@ -20,7 +20,7 @@
 #define CONFIG_GEN_IN1_REV                  true
 #define CONFIG_GEN_AUX1_REV                 false
 #define CONFIG_GEN_AUX2_REV                 false
-#define CONFIG_GEN_FIXED_UNLOCK_DELAY       7
+#define CONFIG_GEN_FIXED_UNLOCK_DELAY       5
 #define CONFIG_GEN_RGB_LED_COUNT            1
 #define CONFIG_GEN_WIEGAND_ENABLED          true
 

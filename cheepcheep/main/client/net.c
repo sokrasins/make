@@ -207,6 +207,9 @@ static void net_task(void *params)
                     handler->cb(NET_EVT_DISCONNECT, handler->ctx);
                 }
             }
+
+            // Try to reconnect here
+            esp_wifi_connect();
         } 
         else 
         {

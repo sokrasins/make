@@ -53,10 +53,11 @@ status_t gpio_init(const config_pins_t *pins, const config_general_t *gen)
     gpio_set_pull_mode(_input_pins[INPUT_AUX1].pin, GPIO_PULLDOWN_ONLY);
     gpio_set_pull_mode(_input_pins[INPUT_AUX2].pin, GPIO_PULLDOWN_ONLY);
 
-    // Debug pulse, used to detect reboots
-    //gpio_out_set(OUTPUT_OUT1, true);
-    //vTaskDelay(pdMS_TO_TICKS(10));
-    //gpio_out_set(OUTPUT_OUT1, false);
+    // Debug pulse. This is used in long-term testing to detect board reboots.
+    // TODO: Set this with a command in the future
+    gpio_out_set(OUTPUT_OUT1, true);
+    vTaskDelay(pdMS_TO_TICKS(10));
+    gpio_out_set(OUTPUT_OUT1, false);
 
     // Set default pin states
     gpio_out_set(OUTPUT_READER_BUZZER, false);

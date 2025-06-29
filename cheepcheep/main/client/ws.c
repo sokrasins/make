@@ -20,6 +20,7 @@ typedef struct {
     esp_websocket_client_handle_t client;
     char uri[64];
     ws_evt_handler_t handler;
+    bool connected;
 } ws_ctx_t;
 
 // Connection state management
@@ -31,6 +32,7 @@ static ws_ctx_t _ctx;
 status_t ws_init(const config_network_t *net_config)
 {
     _ctx.handler.cb = NULL;
+    _ctx.connected = false;
     
     // Set up the network connection
     net_init(net_config);
@@ -62,10 +64,14 @@ status_t ws_evt_cb_register(ws_evt_cb_t cb, void *ctx)
 
 status_t ws_send(cJSON *msg)
 {
-    char *pkt = cJSON_PrintUnformatted(msg);
-    DEBUG("sending: %s", pkt);
-    esp_websocket_client_send_text(_ctx.client, pkt, strlen(pkt), portMAX_DELAY);
-    return STATUS_OK;
+    if (_ctx.connected)
+    {
+        char *pkt = cJSON_PrintUnformatted(msg);
+        DEBUG("sending: %s", pkt);
+        esp_websocket_client_send_text(_ctx.client, pkt, strlen(pkt), portMAX_DELAY);
+        return STATUS_OK;
+    }
+    return -STATUS_NO_RESOURCE;
 }
 
 status_t ws_connect(esp_websocket_client_handle_t *client, char *uri)
@@ -102,6 +108,7 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
 
     case WEBSOCKET_EVENT_CONNECTED:
         INFO("Websocket Connected");
+        _ctx.connected = true;
         if (_ctx.handler.cb != NULL)
         {
             _ctx.handler.cb(WS_OPEN, NULL, _ctx.handler.ctx);
@@ -110,6 +117,7 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
 
     case WEBSOCKET_EVENT_DISCONNECTED:
         INFO("Websocket Disconnected");
+        _ctx.connected = false;
         ERROR("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
         if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) 
         {
@@ -179,5 +187,7 @@ void net_evt_cb(net_evt_t evt, void *ctx)
     if (evt == NET_EVT_DISCONNECT)
     {
         // use this for something  
+        WARN("Lost network connection, closing websocket");
+        ws_disconnect(ws_ctx->client);
     }
 }

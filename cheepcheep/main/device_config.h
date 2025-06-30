@@ -14,7 +14,7 @@
 #define CONFIG_GEN_RELAY_REV                false
 #define CONFIG_GEN_DOOR_SENSOR_REV          true
 #define CONFIG_GEN_DOOR_SENSOR_EN           false
-#define CONFIG_GEN_DOOR_SENSOR_TIMEOUT      5
+#define CONFIG_GEN_DOOR_SENSOR_TIMEOUT      4
 #define CONFIG_GEN_DOOR_OPEN_ALARM_TIMEOUT  0
 #define CONFIG_GEN_OUT1_REV                 false
 #define CONFIG_GEN_IN1_REV                  true

@@ -38,6 +38,10 @@ typedef struct {
 } config_network_t;
 
 typedef struct {
+    char *url;
+} config_dfu_t;
+
+typedef struct {
     bool lock_reversed;
     bool reader_led_reversed;
     bool relay_reversed;
@@ -114,9 +118,14 @@ typedef struct {
 } config_debug_t;
 
 typedef struct {
-    device_type_t device_type;
     config_portal_t portal;
     config_network_t net;
+    config_dfu_t dfu;
+} config_client_t;
+
+typedef struct {
+    device_type_t device_type;
+    config_client_t client;
     config_general_t general;
     config_buzzer_t buzzer;
     config_interlock_t interlock;

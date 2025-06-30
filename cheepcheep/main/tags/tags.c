@@ -85,8 +85,8 @@ status_t tag_sync_handler(msg_t *msg)
             WARN("saving...");
             char file_line[16];
 
-            status_t status = fs_close(tag_file);
-            status = fs_rm(TAGS_FILENAME);
+            fs_close(tag_file);
+            status_t status = fs_rm(TAGS_FILENAME);
             file_t new_file = fs_open(TAGS_FILENAME, "w");
             if (new_file == 0)
             {

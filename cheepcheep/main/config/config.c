@@ -3,15 +3,20 @@
 
 static const config_t config = {
     .device_type = CONFIG_DEVICE_TYPE,
-    .portal = {
-        .ws_url = CONFIG_PORTAL_WS_URL,
-        .api_secret = CONFIG_PORTAL_API_SECRET,
-    },
-    .net = {
-        .wifi_ssid = CONFIG_NET_WIFI_SSID,
-        .wifi_pass = CONFIG_NET_WIFI_PASS,
-        .wifi_country_code = CONFIG_NET_WIFI_COUNTRY_CODE,
-        .wifi_power = CONFIG_NET_WIFI_TX_POWER,
+    .client = {
+        .portal = {
+            .ws_url = CONFIG_PORTAL_WS_URL,
+            .api_secret = CONFIG_PORTAL_API_SECRET,
+        },
+        .net = {
+            .wifi_ssid = CONFIG_NET_WIFI_SSID,
+            .wifi_pass = CONFIG_NET_WIFI_PASS,
+            .wifi_country_code = CONFIG_NET_WIFI_COUNTRY_CODE,
+            .wifi_power = CONFIG_NET_WIFI_TX_POWER,
+        },
+        .dfu = {
+            .url = CONFIG_DFU_URL,
+        },
     },
     .general = {
         .lock_reversed = CONFIG_GEN_LOCK_REVERSED,

@@ -56,7 +56,7 @@ void app_main(void)
     }
 
     INFO("Setting up client");
-    status = client_init(config->device_type, &config->portal, &config->net);
+    status = client_init(&config->client, config->device_type);
     client_handler_register(server_cmd_handler);
 
     INFO("Setting up authorized tag db");

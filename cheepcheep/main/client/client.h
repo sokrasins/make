@@ -8,7 +8,7 @@
 
 typedef status_t (*client_cmd_handler_t)(msg_t *msg);
 
-status_t client_init(device_type_t device, const config_portal_t *portal_config, const config_network_t *net_config);
+status_t client_init(const config_client_t *config, device_type_t device_type);
 
 status_t client_open(void);
 

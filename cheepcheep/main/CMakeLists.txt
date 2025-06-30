@@ -17,7 +17,7 @@ SRCS
     "client/ws.c"
     "client/client.c"
     "client/msg.c"
-    "client/dfu_client.c"
+    "client/ota_dfu.c"
 INCLUDE_DIRS 
     "."
     "wiegand"

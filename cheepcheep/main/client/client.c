@@ -1,5 +1,5 @@
 #include "client.h"
-#include "dfu_client.h"
+#include "ota_dfu.h"
 #include "ws.h"
 #include "net.h"
 #include "log.h"
@@ -30,9 +30,9 @@ typedef struct {
 
 static client_ctx_t _ctx;
 
-status_t client_init(device_type_t device, const config_portal_t *portal_config, const config_network_t *net_config)
+status_t client_init(const config_client_t *config, device_type_t device_type)
 {
-    _ctx.config = portal_config;
+    _ctx.config = &config->portal;
 
     for (int i=0; i<CLIENT_CMD_HANDLER_MAX; i++)
     {
@@ -54,16 +54,16 @@ status_t client_init(device_type_t device, const config_portal_t *portal_config,
         return -STATUS_NOMEM;
     }
 
-    ws_init(net_config);
-    dfu_init();
+    ws_init(&config->net);
+    ota_dfu_init(&config->dfu);
 
     ws_evt_cb_register(ws_evt_cb, (void *)&_ctx);
 
     // Build the uri for the websocket server
     char uri[128];
     uint8_t mac[6];
-    net_get_mac(mac); // TODO: This is only valid when wifi is initialized
-    client_build_uri(device, _ctx.config->ws_url, mac, uri);
+    net_get_mac(mac);
+    client_build_uri(device_type, _ctx.config->ws_url, mac, uri);
 
     ws_start(uri);
 

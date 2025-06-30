@@ -129,6 +129,7 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
         {
             _ctx.handler.cb(WS_CLOSE, NULL, _ctx.handler.ctx);
         }
+        ws_connect(&_ctx.client, _ctx.uri);
         break;
 
     case WEBSOCKET_EVENT_DATA:
@@ -182,6 +183,7 @@ void net_evt_cb(net_evt_t evt, void *ctx)
     ws_ctx_t *ws_ctx = (ws_ctx_t *) ctx;
     if (evt == NET_EVT_CONNECT)
     {
+        INFO("Net connected, connecting websocket");
         ws_connect(&ws_ctx->client, ws_ctx->uri);
     }
     if (evt == NET_EVT_DISCONNECT)

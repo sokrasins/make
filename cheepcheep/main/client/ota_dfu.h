@@ -3,9 +3,10 @@
 
 #include "status.h"
 #include "config.h"
+#include <stdbool.h>
 
 status_t ota_dfu_init(const config_dfu_t *config);
 
-status_t ota_mark_application(void);
+status_t ota_mark_application(bool valid);
 
 #endif /*OTA_DFU_H_*/

@@ -39,6 +39,8 @@ typedef struct {
 
 typedef struct {
     char *url;
+    bool skip_cn_check;
+    bool skip_version_check;
 } config_dfu_t;
 
 typedef struct {

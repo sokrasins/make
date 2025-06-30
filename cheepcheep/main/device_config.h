@@ -67,4 +67,7 @@
 #define CONFIG_DEBUG_UID_32BIT_MODE         false
 #define CONFIG_DEBUG_CRON_PERIOD            10000
 
+#define CONFIG_DFU_SKIP_CN_CHECK            true
+#define CONFIG_DFU_SKIP_VERSION_CHECK       false
+
 #endif /*DEVICE_CONFIG_H_*/

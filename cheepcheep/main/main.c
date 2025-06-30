@@ -26,9 +26,9 @@ void app_main(void)
 {
     status_t status;
 
-    INFO("************ DFU ************");
-
-    ota_mark_application();
+    // If the application is new, this will mark it as runnable. Otherwise, the 
+    // application may roll back to a previous version
+    ota_mark_application(true);
 
     INFO("Getting config");
     config = config_get();

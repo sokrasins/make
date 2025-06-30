@@ -1,6 +1,11 @@
 #include "config.h"
 #include "device_config.h"
 
+// Set configs that haven't been set 
+#ifndef CONFIG_DFU_URL
+#define CONFIG_DFU_URL ""
+#endif /*CONFIG_DFU_URL*/
+
 static const config_t config = {
     .device_type = CONFIG_DEVICE_TYPE,
     .client = {
@@ -16,6 +21,8 @@ static const config_t config = {
         },
         .dfu = {
             .url = CONFIG_DFU_URL,
+            .skip_cn_check = CONFIG_DFU_SKIP_CN_CHECK,
+            .skip_version_check = CONFIG_DFU_SKIP_VERSION_CHECK,
         },
     },
     .general = {

@@ -51,8 +51,8 @@ status_t ws_start(char *uri)
         .uri = uri,
         .skip_cert_common_name_check = true,
         .crt_bundle_attach = esp_crt_bundle_attach,
-        .reconnect_timeout_ms = 30000,
-        .network_timeout_ms = 30000,
+        .reconnect_timeout_ms = 10000,
+        .network_timeout_ms = 10000,
     };
 
     _ctx.client = esp_websocket_client_init(&ws_cfg);
@@ -87,16 +87,6 @@ status_t ws_send(cJSON *msg)
 
 status_t ws_connect(esp_websocket_client_handle_t *client, char *uri)
 {
-    //esp_websocket_client_config_t ws_cfg = {
-    //    .uri = uri,
-    //    .skip_cert_common_name_check = true,
-    //    .crt_bundle_attach = esp_crt_bundle_attach,
-    //    .reconnect_timeout_ms = 30000,
-    //    .network_timeout_ms = 30000,
-    //};
-    
-    //*client = esp_websocket_client_init(&ws_cfg);
-    //esp_websocket_register_events(*client, WEBSOCKET_EVENT_ANY, ws_evt_cb, (void *)*client);
     esp_websocket_client_start(*client);
     return STATUS_OK;
 }
@@ -104,8 +94,6 @@ status_t ws_connect(esp_websocket_client_handle_t *client, char *uri)
 status_t ws_disconnect(esp_websocket_client_handle_t client)
 {
     esp_websocket_client_close(client, portMAX_DELAY);
-    //esp_websocket_unregister_events(client, WEBSOCKET_EVENT_ANY, ws_evt_cb);
-    //esp_websocket_client_destroy(client);
     return STATUS_OK;
 }
 
@@ -129,27 +117,23 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
     case WEBSOCKET_EVENT_DISCONNECTED:
         INFO("Websocket Disconnected");
         _ctx.connected = false;
-        ERROR("HTTP status code",  data->error_handle.esp_ws_handshake_status_code);
+        ERROR("HTTP status code: %d",  data->error_handle.esp_ws_handshake_status_code);
         if (data->error_handle.error_type == WEBSOCKET_ERROR_TYPE_TCP_TRANSPORT) 
         {
-            ERROR("reported from esp-tls", data->error_handle.esp_tls_last_esp_err);
-            ERROR("reported from tls stack", data->error_handle.esp_tls_stack_err);
-            ERROR("captured as transport's socket errno",  data->error_handle.esp_transport_sock_errno);
+            ERROR("reported from esp-tls: %d", data->error_handle.esp_tls_last_esp_err);
+            ERROR("reported from tls stack: %d", data->error_handle.esp_tls_stack_err);
+            ERROR("captured as transport's socket errno: %d",  data->error_handle.esp_transport_sock_errno);
         }
         if (_ctx.handler.cb != NULL)
         {
             _ctx.handler.cb(WS_CLOSE, NULL, _ctx.handler.ctx);
         }
-        ws_connect(&_ctx.client, _ctx.uri);
         break;
 
     case WEBSOCKET_EVENT_DATA:
-        //INFO("WEBSOCKET_EVENT_DATA");
-        //INFO("Received opcode=%d", data->op_code);
         if (data->op_code == 0x2) 
         {
             ERROR("Unexpected binary data");
-            //ESP_LOG_BUFFER_HEX("Received binary data", data->data_ptr, data->data_len);
         } 
         else if (data->op_code == 0x08 && data->data_len == 2) 
         {

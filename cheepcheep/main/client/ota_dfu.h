@@ -6,4 +6,6 @@
 
 status_t ota_dfu_init(const config_dfu_t *config);
 
+status_t ota_mark_application(void);
+
 #endif /*OTA_DFU_H_*/

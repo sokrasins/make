@@ -15,6 +15,7 @@
 #include "device.h"
 #include "tags.h"
 #include "client.h"
+#include "ota_dfu.h"
 
 device_t *device;
 const config_t *config;
@@ -24,6 +25,10 @@ static status_t server_cmd_handler(msg_t *msg);
 void app_main(void)
 {
     status_t status;
+
+    INFO("************ DFU ************");
+
+    ota_mark_application();
 
     INFO("Getting config");
     config = config_get();

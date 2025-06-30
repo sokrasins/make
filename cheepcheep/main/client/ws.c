@@ -47,6 +47,17 @@ status_t ws_init(const config_network_t *net_config)
 status_t ws_start(char *uri)
 {
     strcpy(_ctx.uri, uri);
+    esp_websocket_client_config_t ws_cfg = {
+        .uri = uri,
+        .skip_cert_common_name_check = true,
+        .crt_bundle_attach = esp_crt_bundle_attach,
+        .reconnect_timeout_ms = 30000,
+        .network_timeout_ms = 30000,
+    };
+
+    _ctx.client = esp_websocket_client_init(&ws_cfg);
+    esp_websocket_register_events(_ctx.client, WEBSOCKET_EVENT_ANY, ws_evt_cb, (void *)&_ctx.client);
+
     return net_start();
 }
 
@@ -76,16 +87,16 @@ status_t ws_send(cJSON *msg)
 
 status_t ws_connect(esp_websocket_client_handle_t *client, char *uri)
 {
-    esp_websocket_client_config_t ws_cfg = {
-        .uri = uri,
-        .skip_cert_common_name_check = true,
-        .crt_bundle_attach = esp_crt_bundle_attach,
-        .reconnect_timeout_ms = 30000,
-        .network_timeout_ms = 30000,
-    };
+    //esp_websocket_client_config_t ws_cfg = {
+    //    .uri = uri,
+    //    .skip_cert_common_name_check = true,
+    //    .crt_bundle_attach = esp_crt_bundle_attach,
+    //    .reconnect_timeout_ms = 30000,
+    //    .network_timeout_ms = 30000,
+    //};
     
-    *client = esp_websocket_client_init(&ws_cfg);
-    esp_websocket_register_events(*client, WEBSOCKET_EVENT_ANY, ws_evt_cb, (void *)*client);
+    //*client = esp_websocket_client_init(&ws_cfg);
+    //esp_websocket_register_events(*client, WEBSOCKET_EVENT_ANY, ws_evt_cb, (void *)*client);
     esp_websocket_client_start(*client);
     return STATUS_OK;
 }
@@ -94,7 +105,7 @@ status_t ws_disconnect(esp_websocket_client_handle_t client)
 {
     esp_websocket_client_close(client, portMAX_DELAY);
     //esp_websocket_unregister_events(client, WEBSOCKET_EVENT_ANY, ws_evt_cb);
-    esp_websocket_client_destroy(client);
+    //esp_websocket_client_destroy(client);
     return STATUS_OK;
 }
 

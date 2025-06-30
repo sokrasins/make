@@ -1,4 +1,5 @@
 #include "client.h"
+#include "dfu_client.h"
 #include "ws.h"
 #include "net.h"
 #include "log.h"
@@ -15,7 +16,7 @@
 
 // Event handlers
 static void client_ping_timer_cb(TimerHandle_t xTimer);
-void ws_evt_cb(ws_evt_t evt, cJSON *data, void *ctx);
+static void ws_evt_cb(ws_evt_t evt, cJSON *data, void *ctx);
 status_t client_msg_handler(msg_t *msg);
 
 // Helpers
@@ -54,6 +55,8 @@ status_t client_init(device_type_t device, const config_portal_t *portal_config,
     }
 
     ws_init(net_config);
+    dfu_init();
+
     ws_evt_cb_register(ws_evt_cb, (void *)&_ctx);
 
     // Build the uri for the websocket server

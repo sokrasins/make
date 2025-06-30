@@ -14,10 +14,10 @@
 
 #define WIFI_RETRIES 5U
 
-#define WIFI_CONNECTED_BIT BIT0
-#define WIFI_FAIL_BIT      BIT1
-
 #define NET_EVT_HANDLERS_NUM 10
+
+#define WIFI_CONNECTED_BIT      BIT0
+#define WIFI_DISCONNECTED_BIT   BIT1
 
 typedef struct {
     net_evt_t evt;
@@ -25,24 +25,29 @@ typedef struct {
     net_evt_cb_t cb;
 } net_evt_handler_t;
 
-static status_t wifi_connection(void);
-static void net_task(void *params);
+typedef struct {
+    net_evt_handler_t handlers[NET_EVT_HANDLERS_NUM];
+    const config_network_t *config;
+    EventGroupHandle_t wifi_event_group;
+    int retry_num;
+    esp_ip4_addr_t ip;
+} net_ctx_t;
 
-net_evt_handler_t _handlers[NET_EVT_HANDLERS_NUM];
-static const config_network_t *_config;
-static EventGroupHandle_t wifi_event_group;
-int retry_num = 0;
-bool connected = false;
-esp_ip4_addr_t _ip;
+static net_ctx_t _ctx = {
+    .retry_num = 0,
+};
+
+static void net_task(void *params);
+static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 
 status_t net_init(const config_network_t *config)
 {
-    _config = config;
-    wifi_event_group = xEventGroupCreate();
+    _ctx.config = config;
+    _ctx.wifi_event_group = xEventGroupCreate();
 
     for (int i=0; i<NET_EVT_HANDLERS_NUM; i++)
     {
-        _handlers[i].cb = NULL;
+        _ctx.handlers[i].cb = NULL;
     }
 
     esp_log_level_set("wifi", ESP_LOG_WARN);
@@ -63,67 +68,11 @@ status_t net_init(const config_network_t *config)
 
 status_t net_start(void)
 {
-    status_t status = wifi_connection();
-    if (status == STATUS_OK)
-    {
-        xTaskCreate(net_task, "Net_Task", 4096, NULL, 3, NULL);
-    }
-    return status;    
-}
-
-net_evt_handle_t net_evt_cb_register(net_evt_t evt, void *ctx, net_evt_cb_t cb)
-{
-    for (int i=0; i<NET_EVT_HANDLERS_NUM; i++)
-    {
-        net_evt_handler_t *handler = &_handlers[i];
-        if (handler->cb == NULL)
-        {
-            handler->evt = evt;
-            handler->ctx = ctx;
-            handler->cb = cb;
-            return (net_evt_handle_t) handler;
-        }
-    }
-    return NULL;
-}
-
-static void event_handler(void* arg, esp_event_base_t event_base,
-                                int32_t event_id, void* event_data)
-{
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) 
-    {
-        esp_wifi_connect();
-    } 
-    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) 
-    {
-        connected = false;
-        if (retry_num < WIFI_RETRIES) 
-        {
-            esp_wifi_connect();
-            retry_num++;
-            INFO("retry to connect to the AP");
-        } 
-        else 
-        {
-            xEventGroupSetBits(wifi_event_group, WIFI_FAIL_BIT);
-        }
-        INFO("connect to the AP fail");
-    } 
-    else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) 
-    {
-        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-        INFO("IP address assigned: " IPSTR, IP2STR(&event->ip_info.ip));
-        retry_num = 0;
-        connected = true;
-        memcpy(&_ip, &event->ip_info.ip, sizeof(_ip));
-        xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_BIT);
-    }
-}
-
-static status_t wifi_connection(void)
-{
     esp_event_handler_instance_t instance_any_id;
     esp_event_handler_instance_t instance_got_ip;
+
+    // Run net task, ready to handle network state changes
+    xTaskCreate(net_task, "Net_Task", 4096, (void *)&_ctx, 3, NULL);
     
     // Register our event handler
     esp_event_handler_instance_register(
@@ -150,76 +99,126 @@ static status_t wifi_connection(void)
             .sae_pwe_h2e = WPA3_SAE_PWE_HUNT_AND_PECK,
         },
     };
-    memcpy(wifi_config.sta.ssid, _config->wifi_ssid, strlen(_config->wifi_ssid));
-    memcpy(wifi_config.sta.password, _config->wifi_pass, strlen(_config->wifi_pass));
+    memcpy(wifi_config.sta.ssid, _ctx.config->wifi_ssid, strlen(_ctx.config->wifi_ssid));
+    memcpy(wifi_config.sta.password, _ctx.config->wifi_pass, strlen(_ctx.config->wifi_pass));
 
     // Set wifi params from config
-    esp_wifi_set_max_tx_power(_config->wifi_power);
-    esp_wifi_set_country_code(_config->wifi_country_code, true);
+    esp_wifi_set_max_tx_power(_ctx.config->wifi_power);
+    esp_wifi_set_country_code(_ctx.config->wifi_country_code, true);
     
     // Configure wifi
     esp_wifi_set_mode(WIFI_MODE_STA);
     esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
+
+    esp_wifi_set_ps(WIFI_PS_NONE);
     
     // Start wifi
     esp_wifi_start();
 
-    return STATUS_OK;
+    return STATUS_OK; 
+}
+
+net_evt_handle_t net_evt_cb_register(net_evt_t evt, void *ctx, net_evt_cb_t cb)
+{
+    for (int i=0; i<NET_EVT_HANDLERS_NUM; i++)
+    {
+        net_evt_handler_t *handler = &_ctx.handlers[i];
+        if (handler->cb == NULL)
+        {
+            handler->evt = evt;
+            handler->ctx = ctx;
+            handler->cb = cb;
+            return (net_evt_handle_t) handler;
+        }
+    }
+    return NULL;
+}
+
+void net_evt_cb_deregister(net_evt_handle_t handle)
+{
+    net_evt_handler_t *handler = (net_evt_handler_t *) handle;
+    handler->cb = NULL;
+}
+
+static void event_handler(void* arg, esp_event_base_t event_base,
+                                int32_t event_id, void* event_data)
+{
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) 
+    {
+        INFO("STA START");
+        esp_wifi_connect();
+    } 
+    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) 
+    {
+        if (_ctx.retry_num < WIFI_RETRIES) 
+        {
+            esp_wifi_connect();
+            _ctx.retry_num++;
+            INFO("retry to connect to the AP");
+        } 
+        else 
+        {
+            INFO("STA_DISCONNECTED");
+            _ctx.retry_num = 0;
+            xEventGroupSetBits(_ctx.wifi_event_group, WIFI_DISCONNECTED_BIT);
+        }
+        INFO("connect to the AP fail");
+    } 
+    else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) 
+    {
+        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+        INFO("IP address assigned: " IPSTR, IP2STR(&event->ip_info.ip));
+        memcpy(&_ctx.ip, &event->ip_info.ip, sizeof(_ctx.ip));
+        _ctx.retry_num = 0;
+        xEventGroupSetBits(_ctx.wifi_event_group, WIFI_CONNECTED_BIT);
+    }
 }
 
 static void net_task(void *params)
 {
+    net_ctx_t *ctx = (net_ctx_t *) params;
     while (1)
     {
         // Waiting until either the connection is established (WIFI_CONNECTED_BIT) 
         // or connection failed for the maximum number of re-tries (WIFI_FAIL_BIT). 
         // The bits are set by event_handler() (see above)
         EventBits_t bits = xEventGroupWaitBits(
-            wifi_event_group,
-            WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
+            ctx->wifi_event_group,
+            WIFI_CONNECTED_BIT | WIFI_DISCONNECTED_BIT,
             pdTRUE,
             pdFALSE,
             portMAX_DELAY
         );
 
-        if (bits & WIFI_CONNECTED_BIT) 
+        if(bits & WIFI_CONNECTED_BIT)
         {
-            INFO("connected to ap SSID: %s", _config->wifi_ssid);
+            INFO("connected to ap SSID: %s", ctx->config->wifi_ssid);
 
             for (int i=0; i<NET_EVT_HANDLERS_NUM; i++)
             {
-                net_evt_handler_t *handler = &_handlers[i];
+                net_evt_handler_t *handler = &ctx->handlers[i];
                 if (handler->evt == NET_EVT_CONNECT && handler->cb != NULL)
                 {
                     handler->cb(NET_EVT_CONNECT, handler->ctx);
                 }
             }
-        } 
-        else if (bits & WIFI_FAIL_BIT) 
+        }
+
+        if (bits & WIFI_DISCONNECTED_BIT)
         {
-            ERROR("Failed to connect to SSID: %s", _config->wifi_ssid);
+            ERROR("Failed to connect to SSID: %s", ctx->config->wifi_ssid);
 
             for (int i=0; i<NET_EVT_HANDLERS_NUM; i++)
             {
-                net_evt_handler_t *handler = &_handlers[i];
+                net_evt_handler_t *handler = &ctx->handlers[i];
                 if (handler->evt == NET_EVT_DISCONNECT && handler->cb != NULL)
                 {
                     handler->cb(NET_EVT_DISCONNECT, handler->ctx);
                 }
             }
 
-            // Try to reconnect here
+            // Try to reconnect
             esp_wifi_connect();
-        } 
-        else 
-        {
-            ERROR("UNEXPECTED EVENT");
-        }
-        if (!connected)
-        {
-            ERROR("No wifi connection");
-            // TODO: Blink LED
-            // TODO: Try to reconnect?
         }
     }
 }
@@ -231,5 +230,5 @@ void net_get_mac(uint8_t *mac)
 
 uint32_t net_get_ip(void)
 {
-    return _ip.addr;
+    return _ctx.ip.addr;
 }

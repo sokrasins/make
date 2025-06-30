@@ -24,7 +24,7 @@ typedef struct {
 } ws_ctx_t;
 
 // Connection state management
-void net_evt_cb(net_evt_t evt, void *ctx);
+static void net_evt_cb(net_evt_t evt, void *ctx);
 static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 
 static ws_ctx_t _ctx;
@@ -33,7 +33,7 @@ status_t ws_init(const config_network_t *net_config)
 {
     _ctx.handler.cb = NULL;
     _ctx.connected = false;
-    
+
     // Set up the network connection
     net_init(net_config);
     net_evt_cb_register(NET_EVT_CONNECT, (void *)&_ctx, net_evt_cb);

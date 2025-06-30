@@ -17,6 +17,28 @@ file_t tag_file;
 status_t tags_init(void)
 {
     tag_file = fs_open(TAGS_FILENAME, "r");
+    if (tag_file == NULL)
+    {
+        ERROR("Couldn't open %s", TAGS_FILENAME);
+        return -STATUS_NOFILE;
+    }
+
+    // When new firmware is written the tags file is lost, but
+    // the nvstate partition is usually untouched (unless the 
+    // flash is explicitly erased). In this case, a sync message 
+    // with the same tags list will be rejected until a change 
+    // is made to the list (and thus changing the hash).
+    //
+    // Here we check if the tag file is empty. If so, the hash is
+    // cleared so the sync message can populate the tags list here.
+    char card_str[16];
+    if (fs_readline(tag_file, card_str) == -STATUS_EOF)
+    {
+        uint8_t tag_hash[TAG_HASH_LEN];
+        memset(tag_hash, 0, TAG_HASH_LEN);
+        nvstate_tag_hash_set(tag_hash, TAG_HASH_LEN);
+        fs_rewind(tag_file);
+    }
 
     // TODO: verify hash
     return client_handler_register(tag_sync_handler);

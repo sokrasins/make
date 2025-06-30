@@ -18,6 +18,8 @@ status_t net_start(void);
 
 net_evt_handle_t net_evt_cb_register(net_evt_t evt, void *ctx, net_evt_cb_t cb);
 
+void net_evt_cb_deregister(net_evt_handle_t handle);
+
 void net_get_mac(uint8_t *mac);
 
 uint32_t net_get_ip(void);

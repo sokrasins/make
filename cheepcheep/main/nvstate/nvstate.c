@@ -6,6 +6,7 @@
 
 #define NVS_LOCKED_OUT_KEY "locked_out"
 #define NVS_TAG_HASH_KEY   "tag_hash"
+#define NVS_TAG_CONFIG_KEY "config"
 
 static nvs_handle_t _handle;
 
@@ -62,12 +63,25 @@ status_t nvstate_locked_out_set(bool locked_out)
 
 status_t nvstate_tag_hash(uint8_t *tag_hash, size_t *len)
 {
-    nvs_get_blob(_handle, NVS_TAG_HASH_KEY, (void *)tag_hash, len);
-    return STATUS_OK;
+    esp_err_t err = nvs_get_blob(_handle, NVS_TAG_HASH_KEY, (void *)tag_hash, len);
+    return err == ESP_OK ? STATUS_OK : STATUS_NO_RESOURCE;
 }
 
 status_t nvstate_tag_hash_set(uint8_t *tag_hash, size_t len)
 {
     nvs_set_blob(_handle, NVS_TAG_HASH_KEY, (void *)tag_hash, len);
     return STATUS_OK;
+}
+
+status_t nvstate_config(config_t *config)
+{
+    size_t bytes;
+    esp_err_t err = nvs_get_blob(_handle, NVS_TAG_CONFIG_KEY, (void *)config, &bytes);
+    return err == ESP_OK ? STATUS_OK : STATUS_NO_RESOURCE;
+}
+
+status_t nvstate_config_set(config_t *config)
+{
+    esp_err_t err = nvs_set_blob(_handle, NVS_TAG_CONFIG_KEY, (void *)config, sizeof(config_t));
+    return err == ESP_OK ? STATUS_OK : STATUS_NO_RESOURCE;
 }

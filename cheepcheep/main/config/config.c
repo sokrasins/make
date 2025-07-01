@@ -1,12 +1,49 @@
 #include "config.h"
 #include "device_config.h"
+#include "log.h"
+#include "nvstate.h"
+#include "console.h"
+#include "bsp.h"
 
 // Set configs that haven't been set 
 #ifndef CONFIG_DFU_URL
 #define CONFIG_DFU_URL ""
 #endif /*CONFIG_DFU_URL*/
 
-static const config_t config = {
+#ifndef CONFIG_PORTAL_API_SECRET
+#define CONFIG_PORTAL_API_SECRET ""
+#endif /*CONFIG_PORTAL_API_SECRET*/
+
+#ifndef CONFIG_PORTAL_WS_URL
+#define CONFIG_PORTAL_WS_URL ""
+#endif /*CONFIG_PORTAL_WS_URL*/
+
+#ifndef CONFIG_NET_WIFI_SSID
+#define CONFIG_NET_WIFI_SSID ""
+#endif /*CONFIG_NET_WIFI_SSID*/
+
+#ifndef CONFIG_NET_WIFI_PASS
+#define CONFIG_NET_WIFI_PASS ""
+#endif /*CONFIG_NET_WIFI_PASS*/
+
+#ifndef CONFIG_INTLCK_USER
+#define CONFIG_INTLCK_USER ""
+#endif /*CONFIG_INTLCK_USER*/
+
+#ifndef CONFIG_INTLCK_PASS
+#define CONFIG_INTLCK_PASS ""
+#endif /*CONFIG_INTLCK_PASS*/
+
+int _set_defaults(int argc, char **argv);
+int _set_wifi_ssid(int argc, char **argv);
+int _set_wifi_pass(int argc, char **argv);
+int _set_api_secret(int argc, char **argv);
+int _set_api_url(int argc, char **argv);
+
+static bool _init = false;
+static config_t _config;
+
+static const config_t _defaults = {
     .device_type = CONFIG_DEVICE_TYPE,
     .client = {
         .portal = {
@@ -95,7 +132,88 @@ static const config_t config = {
     },
 };
 
+status_t config_init(void)
+{
+    console_register("set_defaults", "set default config", NULL, _set_defaults);
+    console_register("set_wifi_ssid", "set wifi network", NULL, _set_wifi_ssid);
+    console_register("set_wifi_pass", "set wifi password", NULL, _set_wifi_pass);
+    console_register("set_api_secret", "set api secret", NULL, _set_api_secret);
+    console_register("set_api_url", "set api url", NULL, _set_api_url);
+
+    INFO("Fetching configuration");
+    status_t status = nvstate_config(&_config);
+    if (status != STATUS_OK)
+    {
+        WARN("No config stored, saving defaults");
+        status = nvstate_config_set(&_defaults);
+        status |= nvstate_config(&_config);  
+    }
+    return status;
+}
+
 const config_t * config_get(void)
 {
-    return (const config_t *) &config;
+    status_t status;
+    if (!_init)
+    {
+        if (config_init() != STATUS_OK)
+        {
+            return NULL;
+        }
+        _init = true;
+    }
+
+    return (const config_t *) &_config;
+}
+
+int _set_defaults(int arg, char **argv)
+{
+    printf("Setting default config. Reboot for defaults tot ake effect.\n");
+    nvstate_config_set(&_defaults);
+    nvstate_config(&_config);
+    return 0;
+}
+
+int _set_wifi_ssid(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting Wifi SSID\n");
+        strcpy(_config.client.net.wifi_ssid, argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;
+}
+
+int _set_wifi_pass(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting Wifi password\n");
+        strcpy(_config.client.net.wifi_pass, argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;
+}
+
+int _set_api_secret(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting API secret\n");
+        strcpy(_config.client.portal.api_secret, argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;
+}
+
+int _set_api_url(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting API URL\n");
+        strcpy(_config.client.portal.ws_url, argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;
 }

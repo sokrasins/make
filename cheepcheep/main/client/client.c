@@ -32,7 +32,20 @@ static client_ctx_t _ctx;
 
 status_t client_init(const config_client_t *config, device_type_t device_type)
 {
+    status_t status; 
+
     _ctx.config = &config->portal;
+
+    if (strlen(_ctx.config->api_secret) == 0)
+    {
+        ERROR("API secret not provided, please set.");
+        return -STATUS_BAD_CONFIG;
+    }
+    if (strlen(_ctx.config->ws_url) == 0)
+    {
+        ERROR("Websocket URL not provided, please set.");
+        return -STATUS_BAD_CONFIG;
+    }
 
     for (int i=0; i<CLIENT_CMD_HANDLER_MAX; i++)
     {
@@ -54,7 +67,9 @@ status_t client_init(const config_client_t *config, device_type_t device_type)
         return -STATUS_NOMEM;
     }
 
-    ws_init(&config->net);
+    status = ws_init(&config->net);
+    if (status != STATUS_OK) { return status; }
+
     ota_dfu_init(&config->dfu);
 
     ws_evt_cb_register(ws_evt_cb, (void *)&_ctx);

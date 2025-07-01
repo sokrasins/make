@@ -2,6 +2,7 @@
 #define NVSTATE_H_
 
 #include "status.h"
+#include "config.h"
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -14,5 +15,8 @@ status_t nvstate_locked_out_set(bool locked_out);
 
 status_t nvstate_tag_hash(uint8_t *tag_hash, size_t *len);
 status_t nvstate_tag_hash_set(uint8_t *tag_hash, size_t len);
+
+status_t nvstate_config(config_t *config);
+status_t nvstate_config_set(config_t *config);
 
 #endif /*NVSTATE_H_*/

@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../../../esp/v5.5/esp-idf/components"
 		}
 	],
 	"settings": {
@@ -61,7 +64,8 @@
 			"ios": "c",
 			"net.h": "c",
 			"ota_dfu.h": "c",
-			"console.h": "c"
+			"console.h": "c",
+			"device_config.h": "c"
 		}
 	}
 }

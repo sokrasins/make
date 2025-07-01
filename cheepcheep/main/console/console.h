@@ -1,6 +1,7 @@
 #ifndef CONSOLE_H_
 #define CONSOLE_H_
 
+#include "esp_console.h"
 #include "status.h"
 
 typedef int (*cli_cb_t)(int argc, char **argv);

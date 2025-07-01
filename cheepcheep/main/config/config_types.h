@@ -5,6 +5,16 @@
 
 #define WIFI_POW_MAX 80
 
+#define CONFIG_PORTAL_WS_URL_BYTES      128
+#define CONFIG_PORTAL_API_SECRET_BYTES  42
+#define CONFIG_NET_SSID_BYTES           64
+#define CONFIG_NET_PASS_BYTES           64
+#define CONFIG_NET_COUNTRY_BYTES        3
+#define CONFIG_DFU_URL_BYTES            128
+#define CONFIG_ILOCK_HOST_BYTES         128
+#define CONFIG_ILOCK_USER_BYTES         64
+#define CONFIG_ILOCK_PASS_BYTES         64
+
 typedef enum {
     DEVICE_DOOR,
     DEVICE_INTERLOCK,
@@ -26,19 +36,19 @@ typedef enum {
 } log_level_t;
 
 typedef struct {
-    char *ws_url;
-    char *api_secret;
+    char ws_url[CONFIG_PORTAL_WS_URL_BYTES];
+    char api_secret[CONFIG_PORTAL_API_SECRET_BYTES];
 } config_portal_t;
 
 typedef struct {
-    char *wifi_ssid;
-    char *wifi_pass;
-    char *wifi_country_code;
+    char wifi_ssid[CONFIG_NET_SSID_BYTES];
+    char wifi_pass[CONFIG_NET_PASS_BYTES];
+    char wifi_country_code[CONFIG_NET_COUNTRY_BYTES];
     int wifi_power;
 } config_network_t;
 
 typedef struct {
-    char *url;
+    char url[CONFIG_DFU_URL_BYTES];
     bool skip_cn_check;
     bool skip_version_check;
 } config_dfu_t;
@@ -68,9 +78,9 @@ typedef struct {
 } config_buzzer_t;
 
 typedef struct {
-    char *tasmota_host;
-    char *tasmota_user;
-    char *tasmota_pass;
+    char tasmota_host[CONFIG_ILOCK_HOST_BYTES];
+    char tasmota_user[CONFIG_ILOCK_USER_BYTES];
+    char tasmota_pass[CONFIG_ILOCK_PASS_BYTES];
 } config_interlock_t;
 
 typedef struct {

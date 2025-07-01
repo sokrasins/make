@@ -31,11 +31,15 @@ static ws_ctx_t _ctx;
 
 status_t ws_init(const config_network_t *net_config)
 {
+    status_t status;
+
     _ctx.handler.cb = NULL;
     _ctx.connected = false;
 
     // Set up the network connection
-    net_init(net_config);
+    status = net_init(net_config);
+    if (status != STATUS_OK) { return status; }
+
     net_evt_cb_register(NET_EVT_CONNECT, (void *)&_ctx, net_evt_cb);
     net_evt_cb_register(NET_EVT_DISCONNECT, (void *)&_ctx, net_evt_cb);
 

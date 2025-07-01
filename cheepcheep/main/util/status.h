@@ -16,5 +16,6 @@ typedef int32_t status_t;
 #define STATUS_INVAL 8
 #define STATUS_EOF 9
 #define STATUS_NO_RESOURCE 10
+#define STATUS_BAD_CONFIG 11
 
 #endif /*STATUS_H_*/

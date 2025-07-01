@@ -36,6 +36,17 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
 
 status_t net_init(const config_network_t *config)
 {
+    if (strlen(config->wifi_ssid) == 0)
+    {
+        ERROR("No Wifi SSID provided, please set.");
+        return -STATUS_BAD_CONFIG;
+    }
+    if (strlen(config->wifi_pass) == 0)
+    {
+        ERROR("No Wifi password provided, please set.");
+        return -STATUS_BAD_CONFIG;
+    }
+
     _ctx.config = config;
     _ctx.wifi_event_group = xEventGroupCreate();
 

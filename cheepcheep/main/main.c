@@ -18,6 +18,8 @@
 #include "ota_dfu.h"
 #include "console.h"
 
+#include "esp_app_desc.h"
+
 device_t *device;
 const config_t *config;
 
@@ -29,10 +31,15 @@ void app_main(void)
 {
     status_t status;
 
+    const esp_app_desc_t *desc = esp_app_get_description();
+
+    INFO("");
     INFO("*********************************");
     INFO("********** CHEEP CHEEP **********");
-    INFO("**********    0.1.0    **********");
+    INFO("**********   v%s    **********", desc->version);
     INFO("*********************************");
+    INFO("Built: %s, %s", desc->date, desc->time);
+    INFO("");
 
     // If the application is new, this will mark it as runnable. Otherwise, the 
     // application may roll back to a previous version
@@ -40,8 +47,15 @@ void app_main(void)
 
     console_register("restart", "reboot the device", NULL, _reboot);
 
+    status = nvstate_init();
+    if (status != STATUS_OK) { ERROR("nvstate_init failed: %d"); }
+
     INFO("Getting config");
     config = config_get();
+    if (config == NULL) { ERROR("Couldn't get device config"); }
+
+    INFO("Starting console");
+    console_start();
 
     INFO("Setting up gpio");
     status = gpio_init(&config->pins, &config->general);
@@ -50,9 +64,6 @@ void app_main(void)
     INFO("Setting up storage");
     status = fs_init();
     if (status != STATUS_OK) { ERROR("fs_init failed: %d"); }
-
-    status = nvstate_init();
-    if (status != STATUS_OK) { ERROR("nvstate_init failed: %d"); }
 
     if (config->general.wiegand_enabled)
     {
@@ -101,9 +112,6 @@ void app_main(void)
     INFO("Initializing device");
     status = device->init(config);
     if (status != STATUS_OK) { ERROR("device init failed: %d"); }
-
-    INFO("Starting console");
-    console_start();
 
     while(1)
     {

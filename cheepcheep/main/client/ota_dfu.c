@@ -11,6 +11,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+// Adapted from https://github.com/espressif/esp-idf/tree/v5.4.2/examples/system/ota/native_ota_example
+
 #define HTTP_CLIENT_TIMEOUT 5000 //ms
 #define DFU_BUFFSIZE        1024
 

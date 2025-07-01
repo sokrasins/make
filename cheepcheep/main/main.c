@@ -23,6 +23,8 @@ const config_t *config;
 
 static status_t server_cmd_handler(msg_t *msg);
 
+static int _reboot(int argc, char **argv);
+
 void app_main(void)
 {
     status_t status;
@@ -36,8 +38,7 @@ void app_main(void)
     // application may roll back to a previous version
     ota_mark_application(true);
 
-    INFO("Starting console");
-    status = console_init();
+    console_register("restart", "reboot the device", NULL, _reboot);
 
     INFO("Getting config");
     config = config_get();
@@ -101,6 +102,9 @@ void app_main(void)
     status = device->init(config);
     if (status != STATUS_OK) { ERROR("device init failed: %d"); }
 
+    INFO("Starting console");
+    console_start();
+
     while(1)
     {
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -123,4 +127,10 @@ static status_t server_cmd_handler(msg_t *msg)
     }
 
     return status;
+}
+
+static int _reboot(int argc, char **argv)
+{
+    sys_restart();
+    return 0;
 }

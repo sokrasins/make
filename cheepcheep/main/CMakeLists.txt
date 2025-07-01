@@ -4,6 +4,7 @@ SRCS
     "bsp/fs.c"
     "bsp/gpio.c"
     "bsp/uptime.c"
+    "bsp/sys.c"
     "config/config.c"
     "wiegand/wiegand.c"
     "wiegand/wiegand_fmt.c"
@@ -18,6 +19,7 @@ SRCS
     "client/client.c"
     "client/msg.c"
     "client/ota_dfu.c"
+    "console/console.c"
 INCLUDE_DIRS 
     "."
     "wiegand"
@@ -29,6 +31,7 @@ INCLUDE_DIRS
     "tags"
     "signal"
     "client"
+    "console"
     )
 
 # Note: you must have a partition named the first argument (here it's "littlefs")

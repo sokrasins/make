@@ -60,7 +60,8 @@
 			"string_view": "c",
 			"ios": "c",
 			"net.h": "c",
-			"ota_dfu.h": "c"
+			"ota_dfu.h": "c",
+			"console.h": "c"
 		}
 	}
 }

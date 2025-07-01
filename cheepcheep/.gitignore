@@ -2,4 +2,5 @@ build
 managed_components
 .vscode
 .devcontainer
+.cache
 main/device_creds*.h

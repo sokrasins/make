@@ -16,6 +16,7 @@
 #include "tags.h"
 #include "client.h"
 #include "ota_dfu.h"
+#include "console.h"
 
 device_t *device;
 const config_t *config;
@@ -26,9 +27,17 @@ void app_main(void)
 {
     status_t status;
 
+    INFO("*********************************");
+    INFO("********** CHEEP CHEEP **********");
+    INFO("**********    0.1.0    **********");
+    INFO("*********************************");
+
     // If the application is new, this will mark it as runnable. Otherwise, the 
     // application may roll back to a previous version
     ota_mark_application(true);
+
+    INFO("Starting console");
+    status = console_init();
 
     INFO("Getting config");
     config = config_get();

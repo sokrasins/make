@@ -20,6 +20,16 @@ SRCS
     "client/msg.c"
     "client/ota_dfu.c"
     "console/console.c"
+REQUIRES 
+    freertos 
+    esp_wifi 
+    esp_driver_gpio 
+    json 
+    console
+    esp_http_client
+    esp_https_ota
+    app_update
+    nvs_flash
 INCLUDE_DIRS 
     "."
     "wiegand"

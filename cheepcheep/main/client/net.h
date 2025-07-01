@@ -16,6 +16,8 @@ status_t net_init(const config_network_t *config);
 
 status_t net_start(void);
 
+status_t net_stop(void);
+
 net_evt_handle_t net_evt_cb_register(net_evt_t evt, void *ctx, net_evt_cb_t cb);
 
 void net_evt_cb_deregister(net_evt_handle_t handle);

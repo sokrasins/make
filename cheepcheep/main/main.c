@@ -84,6 +84,7 @@ void app_main(void)
     INFO("Setting up client");
     status = client_init(&config->client, config->device_type);
     client_handler_register(server_cmd_handler);
+    client_open();
 
     INFO("Setting up authorized tag db");
     status = tags_init();

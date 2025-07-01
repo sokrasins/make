@@ -24,45 +24,46 @@ typedef struct {
 } ws_ctx_t;
 
 // Connection state management
-static void net_evt_cb(net_evt_t evt, void *ctx);
 static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 
 static ws_ctx_t _ctx;
 
-status_t ws_init(const config_network_t *net_config)
+status_t ws_init(char *url)
 {
     status_t status;
 
     _ctx.handler.cb = NULL;
     _ctx.connected = false;
 
-    // Set up the network connection
-    status = net_init(net_config);
-    if (status != STATUS_OK) { return status; }
+    esp_log_level_set("websocket_client", ESP_LOG_DEBUG);
 
-    net_evt_cb_register(NET_EVT_CONNECT, (void *)&_ctx, net_evt_cb);
-    net_evt_cb_register(NET_EVT_DISCONNECT, (void *)&_ctx, net_evt_cb);
+    strcpy(_ctx.uri, url);
 
-    esp_log_level_set("websocket_client", ESP_LOG_WARN);
-
-    return STATUS_OK;
-}
-
-status_t ws_start(char *uri)
-{
-    strcpy(_ctx.uri, uri);
     esp_websocket_client_config_t ws_cfg = {
-        .uri = uri,
-        .skip_cert_common_name_check = true,
-        .crt_bundle_attach = esp_crt_bundle_attach,
-        .reconnect_timeout_ms = 10000,
-        .network_timeout_ms = 10000,
+        .uri = _ctx.uri,                    // Server uri
+        .skip_cert_common_name_check = true,// For now skip verification, but this should change in production
+        .crt_bundle_attach = esp_crt_bundle_attach, // Basic cert bundle for most common 
+        .reconnect_timeout_ms = 10000,      // Default
+        .network_timeout_ms = 10000,        // Default
+        .ping_interval_sec = 0xFFFFFFFF,    // Disable the automated ping, the server expects a client-level ping-pong
     };
 
     _ctx.client = esp_websocket_client_init(&ws_cfg);
     esp_websocket_register_events(_ctx.client, WEBSOCKET_EVENT_ANY, ws_evt_cb, (void *)&_ctx.client);
 
-    return net_start();
+    return STATUS_OK;
+}
+
+status_t ws_open(void)
+{
+    esp_websocket_client_start(_ctx.client);
+    return STATUS_OK;
+}
+
+status_t ws_close(void)
+{
+    esp_websocket_client_close(_ctx.client, pdMS_TO_TICKS(3000));
+    return STATUS_OK;
 }
 
 status_t ws_evt_cb_register(ws_evt_cb_t cb, void *ctx)
@@ -87,18 +88,6 @@ status_t ws_send(cJSON *msg)
         return STATUS_OK;
     }
     return -STATUS_NO_RESOURCE;
-}
-
-status_t ws_connect(esp_websocket_client_handle_t *client, char *uri)
-{
-    esp_websocket_client_start(*client);
-    return STATUS_OK;
-}
-
-status_t ws_disconnect(esp_websocket_client_handle_t client)
-{
-    esp_websocket_client_close(client, portMAX_DELAY);
-    return STATUS_OK;
 }
 
 static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
@@ -169,26 +158,15 @@ static void ws_evt_cb(void *handler_args, esp_event_base_t base, int32_t event_i
             ERROR("reported from tls stack", data->error_handle.esp_tls_stack_err);
             ERROR("captured as transport's socket errno",  data->error_handle.esp_transport_sock_errno);
         }
+
+        //sys_restart();
         break;
 
     case WEBSOCKET_EVENT_FINISH:
         INFO("WEBSOCKET_EVENT_FINISH");
+        // TODO: event here
+        // this is sent from the server when the device successfully 
+        // connects, but isn't authorized.
         break;
-    }
-}
-
-void net_evt_cb(net_evt_t evt, void *ctx)
-{
-    ws_ctx_t *ws_ctx = (ws_ctx_t *) ctx;
-    if (evt == NET_EVT_CONNECT)
-    {
-        INFO("Net connected, connecting websocket");
-        ws_connect(&ws_ctx->client, ws_ctx->uri);
-    }
-    if (evt == NET_EVT_DISCONNECT)
-    {
-        // use this for something  
-        WARN("Lost network connection, closing websocket");
-        ws_disconnect(ws_ctx->client);
     }
 }

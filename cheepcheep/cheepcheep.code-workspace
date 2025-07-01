@@ -4,7 +4,7 @@
 			"path": "."
 		},
 		{
-			"path": "../../../esp/v5.5/esp-idf/components"
+			"path": "../../../esp/v5.5/esp-idf"
 		}
 	],
 	"settings": {
@@ -65,7 +65,7 @@
 			"net.h": "c",
 			"ota_dfu.h": "c",
 			"console.h": "c",
-			"device_config.h": "c"
+			"esp_websocket_client.h": "c"
 		}
 	}
 }

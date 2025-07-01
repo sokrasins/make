@@ -55,9 +55,9 @@ status_t net_init(const config_network_t *config)
         _ctx.handlers[i].cb = NULL;
     }
 
-    esp_log_level_set("wifi", ESP_LOG_WARN);
-    esp_log_level_set("wifi_init", ESP_LOG_WARN);
-    esp_log_level_set("esp_netif_handlers", ESP_LOG_WARN);
+    esp_log_level_set("wifi", ESP_LOG_DEBUG);
+    esp_log_level_set("wifi_init", ESP_LOG_DEBUG);
+    esp_log_level_set("esp_netif_handlers", ESP_LOG_DEBUG);
 
     // Set up the itf
     esp_netif_init();
@@ -68,12 +68,7 @@ status_t net_init(const config_network_t *config)
     wifi_init_config_t wifi_initiation = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&wifi_initiation);
 
-    return STATUS_OK;
-}
-
-status_t net_start(void)
-{
-    esp_event_handler_instance_t instance_any_id;
+        esp_event_handler_instance_t instance_any_id;
     esp_event_handler_instance_t instance_got_ip;
 
     // Run net task, ready to handle network state changes
@@ -116,11 +111,22 @@ status_t net_start(void)
     esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
 
     esp_wifi_set_ps(WIFI_PS_NONE);
-    
+
+    return STATUS_OK;
+}
+
+status_t net_start(void)
+{   
     // Start wifi
     esp_wifi_start();
 
     return STATUS_OK; 
+}
+
+status_t net_stop(void)
+{
+    esp_wifi_stop();
+    return STATUS_OK;
 }
 
 net_evt_handle_t net_evt_cb_register(net_evt_t evt, void *ctx, net_evt_cb_t cb)
@@ -222,7 +228,7 @@ static void net_task(void *params)
                 }
             }
 
-            // Try to reconnect
+            // Try to reconnect 
             esp_wifi_connect();
         }
     }

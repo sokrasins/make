@@ -1,105 +1,12 @@
 #include "config.h"
-#include "device_config.h"
 #include "config_defaults.h"
 #include "log.h"
 #include "nvstate.h"
 #include "console.h"
 #include "bsp.h"
 
-
-
-#ifndef CONFIG_INTLCK_USER
-#define CONFIG_INTLCK_USER ""
-#endif /*CONFIG_INTLCK_USER*/
-
-#ifndef CONFIG_INTLCK_PASS
-#define CONFIG_INTLCK_PASS ""
-#endif /*CONFIG_INTLCK_PASS*/
-
 static bool _init = false;
 static config_t _config;
-
-static const config_t _defaults = {
-    .device_type = CONFIG_DEVICE_TYPE,
-    .client = {
-        .portal = {
-            .ws_url = CONFIG_PORTAL_WS_URL,
-            .api_secret = CONFIG_PORTAL_API_SECRET,
-        },
-        .net = {
-            .wifi_ssid = CONFIG_NET_WIFI_SSID,
-            .wifi_pass = CONFIG_NET_WIFI_PASS,
-            .wifi_country_code = CONFIG_NET_WIFI_COUNTRY_CODE,
-            .wifi_power = CONFIG_NET_WIFI_TX_POWER,
-        },
-        .dfu = {
-            .url = CONFIG_DFU_URL,
-            .skip_cn_check = CONFIG_DFU_SKIP_CN_CHECK,
-            .skip_version_check = CONFIG_DFU_SKIP_VERSION_CHECK,
-        },
-    },
-    .general = {
-        .lock_reversed = CONFIG_GEN_LOCK_REVERSED,
-        .reader_led_reversed = CONFIG_GEN_READER_LED_REV,
-        .relay_reversed = CONFIG_GEN_RELAY_REV,
-        .door_sensor_reversed = CONFIG_GEN_DOOR_SENSOR_REV,
-        .door_sensor_enabled = CONFIG_GEN_DOOR_SENSOR_EN,
-        .door_sensor_timeout = CONFIG_GEN_DOOR_SENSOR_TIMEOUT,
-        .door_open_alarm_timeout = CONFIG_GEN_DOOR_OPEN_ALARM_TIMEOUT,
-        .out_1_reversed = CONFIG_GEN_OUT1_REV,
-        .in_1_reversed = CONFIG_GEN_IN1_REV,
-        .aux_1_reversed = CONFIG_GEN_AUX1_REV,
-        .aux_2_reversed = CONFIG_GEN_AUX2_REV,
-        .fixed_unlock_delay = CONFIG_GEN_FIXED_UNLOCK_DELAY,
-        .rgb_led_count = CONFIG_GEN_RGB_LED_COUNT,
-        .wiegand_enabled = CONFIG_GEN_WIEGAND_ENABLED,
-        .uid_32bit_mode = CONFIG_GEN_UID_32BIT_MODE,
-    },
-    .buzzer = {
-        .enabled = CONFIG_BUZZER_EN,
-        .reversed = CONFIG_BUZZER_REV,
-        .buzz_on_swipe = CONFIG_BUZZER_BUZZ_ON_SWIPE,
-        .action_delay = CONFIG_BUZZER_ACTION_DELAY,
-    },
-    .interlock = {
-        .tasmota_host = CONFIG_INTLCK_HOST,
-        .tasmota_user = CONFIG_INTLCK_USER,
-        .tasmota_pass = CONFIG_INTLCK_PASS,
-    },
-    .vending = {
-        .price = CONFIG_VEND_PRICE,
-        .mode = CONFIG_VEND_MODE,
-        .toggle_time = CONFIG_VEND_TOGGLE_TIME,
-    },
-    .lcd = {
-        .enable = CONFIG_LCD_EN,
-        .address = CONFIG_LCD_ADDRESS,
-        .cols = CONFIG_LCD_COLS,
-        .rows = CONFIG_LCD_ROWS,
-    },
-    .pins = {
-        .aux_1 = CONFIG_PINS_AUX1,
-        .aux_2 = CONFIG_PINS_AUX2,
-        .rgb_led = CONFIG_PINS_RGB_LED,
-        .status_led = CONFIG_PINS_STATUS_LED,
-        .reader_led = CONFIG_PINS_READER_LED,
-        .reader_buzzer = CONFIG_PINS_READER_BUZZER,
-        .relay = CONFIG_PINS_RELAY,
-        .lock = CONFIG_PINS_LOCK,
-        .door_sensor = CONFIG_PINS_DOOR_SENSOR,
-        .out_1 = CONFIG_PINS_OUT1,
-        .in_1 = CONFIG_PINS_IN1,
-        .sda = CONFIG_PINS_SDA,
-        .scl = CONFIG_PINS_SCL,
-        .uart_rx = CONFIG_PINS_UART_RX,
-        .uart_tx = CONFIG_PINS_UART_TX,
-        .wiegand_zero = CONFIG_PINS_WIEGAND_ZERO,
-        .wiegand_one = CONFIG_PINS_WIEGAND_ONE,
-    },
-    .dev = {
-        .log_level = CONFIG_DEV_LOG_LEVEL,
-    },
-};
 
 int _set_defaults(int argc, char **argv);
 int _set_wifi_ssid(int argc, char **argv);
@@ -115,6 +22,26 @@ int _set_txpow(int argc, char **argv);
 int _set_wifi_country(int argc, char **argv);
 int _set_dfu_skipcncheck(int argc, char **argv);
 int _set_dfu_skipvercheck(int argc, char **argv);
+int _set_buzz_en(int argc, char **argv);
+int _set_buzz_rev(int argc, char **argv);
+int _set_buzz_on_swipe(int argc, char **argv);
+int _set_buzz_action_delay(int argc, char **argv);
+int _set_log_level(int argc, char **argv);
+int _set_lock_rev(int argc, char **argv);
+int _set_reader_led_rev(int argc, char **argv);
+int _set_relay_rev(int argc, char **argv);
+int _set_door_sensor_rev(int argc, char **argv);
+int _set_door_sensor_en(int argc, char **argv);
+int _set_door_sensor_timeout(int argc, char **argv);
+int _set_door_open_alarm_timeout(int argc, char **argv);
+int _set_out_1_rev(int argc, char **argv);
+int _set_in_1_rev(int argc, char **argv);
+int _set_aux_1_rev(int argc, char **argv);
+int _set_aux_2_rev(int argc, char **argv);
+int _set_fixed_unlock_delay(int argc, char **argv);
+int _set_rgb_led_count(int argc, char **argv);
+int _set_wiegand_en(int argc, char **argv);
+int _set_32bit_mode(int argc, char **argv);
 
 status_t config_init(void)
 {
@@ -124,45 +51,67 @@ status_t config_init(void)
     // device_type
     console_register("device_type", "set device type", NULL, _set_device_type);
     
+    // client.portal
+    console_register("api_secret", "set api secret", NULL, _set_api_secret);
+    console_register("api_url", "set api url", NULL, _set_api_url);
+
     // client.net
     console_register("wifi_ssid", "set wifi network", NULL, _set_wifi_ssid);
     console_register("wifi_pass", "set wifi password", NULL, _set_wifi_pass);
     console_register("txpow", "set wifi tx power", NULL, _set_txpow);
     console_register("country", "set wifi country code", NULL, _set_wifi_country);
 
-    // client.portal
-    console_register("api_secret", "set api secret", NULL, _set_api_secret);
-    console_register("api_url", "set api url", NULL, _set_api_url);
-    
     // client.dfu
     console_register("dfu_url", "set dfu url", NULL, _set_dfu_url);
     console_register("dfu_skip_cn", "skip common name verification for DFU server", NULL, _set_dfu_skipcncheck);
     console_register("dfu_skip_ver", "skip version check during DFU", NULL, _set_dfu_skipvercheck);
 
     // general
+    console_register("lock_rev", "reverse lock polarity", NULL, _set_lock_rev);
+    console_register("reader_led_rev", "reverse reader led polarity", NULL, _set_reader_led_rev);
+    console_register("relay_rev", "reverse rrelay polarity", NULL, _set_relay_rev);
+    console_register("door_sensor_rev", "reverse door sensor polarity", NULL, _set_door_sensor_rev);
+    console_register("door_sensor_en", "enable door sensor", NULL, _set_door_sensor_en);
+    console_register("door_sensor_timeout", "set door sensor timeout", NULL, _set_door_sensor_timeout);
+    console_register("door_open_alarm_timeout", "set door open alarm timeout", NULL, _set_door_open_alarm_timeout);
+    console_register("out1_rev", "reverse out1 polarity", NULL, _set_out_1_rev);
+    console_register("in1_rev", "reverse in1 polarity", NULL, _set_in_1_rev);
+    console_register("aux1_rev", "reverse aux1 polarity", NULL, _set_aux_1_rev);
+    console_register("aux2_rev", "reverse aux2 polarity", NULL, _set_aux_2_rev);
+    console_register("fixed_unlock_time", "set fixed unlock time", NULL, _set_fixed_unlock_delay);
+    console_register("rgb_leds", "set number of rgb leds", NULL, _set_rgb_led_count);
+    console_register("wiegand", "Enable/disable wiegand", NULL, _set_wiegand_en);
+    console_register("32bit_mode", "set 32bit mode", NULL, _set_32bit_mode);
 
     // buzzer
+    console_register("buzz_enable", "enable/disable the buzzer", NULL, _set_buzz_en);
+    console_register("buzz_rev", "reverse buzzer polarity", NULL, _set_buzz_rev);
+    console_register("buzz_on_swipe", "Enable buzzing on swipe", NULL, _set_buzz_on_swipe);
+    console_register("buzz_action_delay", "Set buzzer action delay", NULL, _set_buzz_action_delay);
 
     // interlock
     console_register("ilock_url", "set interlock tasmota host", NULL, _set_ilock_url);
     console_register("ilock_user", "set interlock tasmota username", NULL, _set_ilock_user);
     console_register("ilock_pass", "set interlock tasmota password", NULL, _set_ilock_pass);
 
+    // vending
+    // TODO: unimpl right now
+
     // lcd
+    // TODO: unimpl right now
 
     // pins
+    // TODO: do last
 
     // dev
-
-    // debug
-
+    console_register("log", "set log level", NULL, _set_log_level);
     
     INFO("Fetching configuration");
     status_t status = nvstate_config(&_config);
     if (status != STATUS_OK)
     {
         WARN("No config stored, saving defaults");
-        status = nvstate_config_set(&_defaults);
+        status = nvstate_config_set((config_t *) &_defaults);
         status |= nvstate_config(&_config);  
     }
     return status;
@@ -170,7 +119,6 @@ status_t config_init(void)
 
 const config_t * config_get(void)
 {
-    status_t status;
     if (!_init)
     {
         if (config_init() != STATUS_OK)
@@ -356,4 +304,248 @@ int _set_dfu_skipvercheck(int argc, char **argv)
         nvstate_config_set(&_config);
     }
     return 0;    
+}
+
+int _set_buzz_en(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting buzzer enable\n");
+        _config.buzzer.enabled = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;    
+}
+
+int _set_buzz_rev(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting buzzer reverse\n");
+        _config.buzzer.reversed = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;    
+}
+
+int _set_buzz_on_swipe(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting buzzer on swipe\n");
+        _config.buzzer.buzz_on_swipe = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;  
+}
+
+int _set_buzz_action_delay(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting buzzer action delay\n");
+        _config.buzzer.action_delay = (int) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;  
+}
+
+int _set_log_level(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting log level\n");
+        if (strcmp("error", argv[1]) == 0)
+        {
+            _config.dev.log_level = LOG_ERROR;
+        }
+        else if (strcmp("warning", argv[1]) == 0)
+        {
+            _config.dev.log_level = LOG_WARNING;        
+        }
+        else if (strcmp("info", argv[1]) == 0)
+        {
+            _config.dev.log_level = LOG_INFO;
+        }
+        else if (strcmp("debug", argv[1]) == 0)
+        {
+            _config.dev.log_level = LOG_DEBUG;
+        }
+        else if (strcmp("verbose", argv[1]) == 0)
+        {
+            _config.dev.log_level = LOG_VERBOSE;
+        }
+        else
+        {
+            printf("Invalid log string - choose error, warning, info, debug, or verbose\n");
+            return 0;
+        }
+        nvstate_config_set(&_config);
+    }
+    return 0;        
+}
+
+int _set_lock_rev(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting lock rev\n");
+        _config.general.lock_reversed = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;  
+}
+
+int _set_reader_led_rev(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting reader led rev\n");
+        _config.general.reader_led_reversed = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_relay_rev(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting relay rev\n");
+        _config.general.relay_reversed = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_door_sensor_rev(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting door sensor rev\n");
+        _config.general.door_sensor_reversed = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_door_sensor_en(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting door sensor enable\n");
+        _config.general.door_sensor_enabled = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_door_sensor_timeout(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting door sensor timeout\n");
+        _config.general.door_sensor_timeout = (int) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_door_open_alarm_timeout(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting door open alarm timeout\n");
+        _config.general.door_open_alarm_timeout = (int) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_out_1_rev(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting out 1 rev\n");
+        _config.general.out_1_reversed = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_in_1_rev(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting in 1 rev\n");
+        _config.general.in_1_reversed = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_aux_1_rev(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting aux 1 rev\n");
+        _config.general.aux_1_reversed = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_aux_2_rev(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting aux 2 rev\n");
+        _config.general.aux_2_reversed = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_fixed_unlock_delay(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting fixed unlock delay\n");
+        _config.general.fixed_unlock_delay = (int) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;
+}
+
+int _set_rgb_led_count(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting rgb led count\n");
+        _config.general.rgb_led_count = (int) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;
+}
+
+int _set_wiegand_en(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting wiegand enable\n");
+        _config.general.wiegand_enabled = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
+}
+
+int _set_32bit_mode(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting 32bit card mode\n");
+        _config.general.uid_32bit_mode = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0; 
 }

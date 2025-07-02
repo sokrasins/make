@@ -80,7 +80,7 @@ status_t nvstate_config(config_t *config)
     return err == ESP_OK ? STATUS_OK : STATUS_NO_RESOURCE;
 }
 
-status_t nvstate_config_set(config_t *config)
+status_t nvstate_config_set(const config_t *config)
 {
     esp_err_t err = nvs_set_blob(_handle, NVS_TAG_CONFIG_KEY, (void *)config, sizeof(config_t));
     return err == ESP_OK ? STATUS_OK : STATUS_NO_RESOURCE;

@@ -65,7 +65,9 @@
 			"net.h": "c",
 			"ota_dfu.h": "c",
 			"console.h": "c",
-			"esp_websocket_client.h": "c"
+			"esp_websocket_client.h": "c",
+			"device_creds.h": "c",
+			"device_config.h": "c"
 		}
 	}
 }

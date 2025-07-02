@@ -17,6 +17,6 @@ status_t nvstate_tag_hash(uint8_t *tag_hash, size_t *len);
 status_t nvstate_tag_hash_set(uint8_t *tag_hash, size_t len);
 
 status_t nvstate_config(config_t *config);
-status_t nvstate_config_set(config_t *config);
+status_t nvstate_config_set(const config_t *config);
 
 #endif /*NVSTATE_H_*/

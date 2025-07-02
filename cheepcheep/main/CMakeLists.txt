@@ -6,6 +6,7 @@ SRCS
     "bsp/uptime.c"
     "bsp/sys.c"
     "config/config.c"
+    "config/config_defaults.c"
     "wiegand/wiegand.c"
     "wiegand/wiegand_fmt.c"
     "nvstate/nvstate.c"

@@ -31,7 +31,6 @@
 #define CONFIG_PORTAL_WS_URL ""
 #endif /*CONFIG_PORTAL_WS_URL*/
 
-// Set configs that haven't been set 
 #ifndef CONFIG_DFU_URL
 #define CONFIG_DFU_URL ""
 #endif /*CONFIG_DFU_URL*/
@@ -123,6 +122,14 @@
 #ifndef CONFIG_INTLCK_HOST
 #define CONFIG_INTLCK_HOST ""
 #endif /*CONFIG_INTLCK_HOST*/
+
+#ifndef CONFIG_INTLCK_USER
+#define CONFIG_INTLCK_USER ""
+#endif /*CONFIG_INTLCK_USER*/
+
+#ifndef CONFIG_INTLCK_PASS
+#define CONFIG_INTLCK_PASS ""
+#endif /*CONFIG_INTLCK_PASS*/
 
 #ifndef CONFIG_VEND_PRICE
 #define CONFIG_VEND_PRICE 250
@@ -223,5 +230,7 @@
 #ifndef CONFIG_DEV_LOG_LEVEL
 #define CONFIG_DEV_LOG_LEVEL LOG_WARN
 #endif /*CONFIG_DEV_LOG_LEVEL*/
+
+extern const config_t _defaults;
 
 #endif /*CONFIG_DEFAULTS_H_*/

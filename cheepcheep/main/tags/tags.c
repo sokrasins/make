@@ -86,7 +86,7 @@ status_t tag_sync_handler(msg_t *msg)
             char file_line[16];
 
             fs_close(tag_file);
-            status_t status = fs_rm(TAGS_FILENAME);
+            fs_rm(TAGS_FILENAME);
             file_t new_file = fs_open(TAGS_FILENAME, "w");
             if (new_file == 0)
             {
@@ -98,7 +98,7 @@ status_t tag_sync_handler(msg_t *msg)
             cJSON_ArrayForEach(tag, msg->sync.tags)
             {
                 int len = sprintf(file_line, "%d\n", atoi(tag->valuestring));
-                status = fs_write(new_file, file_line, len);
+                fs_write(new_file, file_line, len);
             }
 
             // Reopen the file as read-only

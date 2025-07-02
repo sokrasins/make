@@ -119,16 +119,8 @@ typedef struct {
 } config_pins_t;
 
 typedef struct {
-    bool enable_wdt;
-    bool catch_all_exceptions;
     log_level_t log_level;
-    bool enable_webrepl;
 } config_dev_t;
-
-typedef struct {
-    bool enable_backup_server;
-    int cron_period;
-} config_debug_t;
 
 typedef struct {
     config_portal_t portal;
@@ -146,7 +138,6 @@ typedef struct {
     config_lcd_t lcd;
     config_pins_t pins;
     config_dev_t dev;
-    config_debug_t debug;
 } config_t;
 
 #endif /*CONFIG_TYPES_H_*/

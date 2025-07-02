@@ -30,7 +30,7 @@ static ws_ctx_t _ctx;
 
 status_t ws_init(char *url)
 {
-    status_t status;
+    //status_t status;
 
     _ctx.handler.cb = NULL;
     _ctx.connected = false;

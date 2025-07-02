@@ -260,6 +260,9 @@ void client_build_uri(device_type_t device, const char *url, uint8_t *mac, char 
         case DEVICE_VENDING:
             strcpy(dev_str, "memberbucks");
             break;
+        
+        default:
+            ERROR("Invalid device type: %d", device);
     }
     
     // Assemble the websocket uri

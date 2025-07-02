@@ -45,7 +45,7 @@ void app_main(void)
     // application may roll back to a previous version
     ota_mark_application(true);
 
-    console_register("restart", "reboot the device", NULL, _reboot);
+    console_register("reboot", "reboot the device", NULL, _reboot);
 
     status = nvstate_init();
     if (status != STATUS_OK) { ERROR("nvstate_init failed: %d"); }
@@ -71,7 +71,7 @@ void app_main(void)
         status = wieg_init(
             config->pins.wiegand_zero, 
             config->pins.wiegand_one, 
-            config->debug.uid_32bit_mode ? WIEG_34_BIT : WIEG_26_BIT
+            config->general.uid_32bit_mode ? WIEG_34_BIT : WIEG_26_BIT
         );
         if (status != STATUS_OK) { ERROR("wieg_init failed: %d"); }
     }

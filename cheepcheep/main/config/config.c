@@ -1,30 +1,12 @@
 #include "config.h"
 #include "device_config.h"
+#include "config_defaults.h"
 #include "log.h"
 #include "nvstate.h"
 #include "console.h"
 #include "bsp.h"
 
-// Set configs that haven't been set 
-#ifndef CONFIG_DFU_URL
-#define CONFIG_DFU_URL ""
-#endif /*CONFIG_DFU_URL*/
 
-#ifndef CONFIG_PORTAL_API_SECRET
-#define CONFIG_PORTAL_API_SECRET ""
-#endif /*CONFIG_PORTAL_API_SECRET*/
-
-#ifndef CONFIG_PORTAL_WS_URL
-#define CONFIG_PORTAL_WS_URL ""
-#endif /*CONFIG_PORTAL_WS_URL*/
-
-#ifndef CONFIG_NET_WIFI_SSID
-#define CONFIG_NET_WIFI_SSID ""
-#endif /*CONFIG_NET_WIFI_SSID*/
-
-#ifndef CONFIG_NET_WIFI_PASS
-#define CONFIG_NET_WIFI_PASS ""
-#endif /*CONFIG_NET_WIFI_PASS*/
 
 #ifndef CONFIG_INTLCK_USER
 #define CONFIG_INTLCK_USER ""
@@ -33,12 +15,6 @@
 #ifndef CONFIG_INTLCK_PASS
 #define CONFIG_INTLCK_PASS ""
 #endif /*CONFIG_INTLCK_PASS*/
-
-int _set_defaults(int argc, char **argv);
-int _set_wifi_ssid(int argc, char **argv);
-int _set_wifi_pass(int argc, char **argv);
-int _set_api_secret(int argc, char **argv);
-int _set_api_url(int argc, char **argv);
 
 static bool _init = false;
 static config_t _config;
@@ -77,6 +53,7 @@ static const config_t _defaults = {
         .fixed_unlock_delay = CONFIG_GEN_FIXED_UNLOCK_DELAY,
         .rgb_led_count = CONFIG_GEN_RGB_LED_COUNT,
         .wiegand_enabled = CONFIG_GEN_WIEGAND_ENABLED,
+        .uid_32bit_mode = CONFIG_GEN_UID_32BIT_MODE,
     },
     .buzzer = {
         .enabled = CONFIG_BUZZER_EN,
@@ -120,26 +97,66 @@ static const config_t _defaults = {
         .wiegand_one = CONFIG_PINS_WIEGAND_ONE,
     },
     .dev = {
-        .enable_wdt = CONFIG_DEV_ENABLE_WDT,
-        .catch_all_exceptions = CONFIG_DEV_CATCH_EXCEPTIONS,
         .log_level = CONFIG_DEV_LOG_LEVEL,
-        .enable_webrepl = CONFIG_DEV_ENABLE_WEBREPL,
-    },
-    .debug = {
-        .enable_backup_server = CONFIG_DEBUG_ENABLE_BACKUP_SERVER,
-        .uid_32bit_mode = CONFIG_DEBUG_UID_32BIT_MODE,
-        .cron_period = CONFIG_DEBUG_CRON_PERIOD,
     },
 };
 
+int _set_defaults(int argc, char **argv);
+int _set_wifi_ssid(int argc, char **argv);
+int _set_wifi_pass(int argc, char **argv);
+int _set_api_secret(int argc, char **argv);
+int _set_api_url(int argc, char **argv);
+int _set_dfu_url(int argc, char **argv);
+int _set_ilock_url(int argc, char **argv);
+int _set_ilock_user(int argc, char **argv);
+int _set_ilock_pass(int argc, char **argv);
+int _set_device_type(int argc, char **argv);
+int _set_txpow(int argc, char **argv);
+int _set_wifi_country(int argc, char **argv);
+int _set_dfu_skipcncheck(int argc, char **argv);
+int _set_dfu_skipvercheck(int argc, char **argv);
+
 status_t config_init(void)
 {
-    console_register("set_defaults", "set default config", NULL, _set_defaults);
-    console_register("set_wifi_ssid", "set wifi network", NULL, _set_wifi_ssid);
-    console_register("set_wifi_pass", "set wifi password", NULL, _set_wifi_pass);
-    console_register("set_api_secret", "set api secret", NULL, _set_api_secret);
-    console_register("set_api_url", "set api url", NULL, _set_api_url);
+    // Meta
+    console_register("factory_reset", "set default config", NULL, _set_defaults);
+    
+    // device_type
+    console_register("device_type", "set device type", NULL, _set_device_type);
+    
+    // client.net
+    console_register("wifi_ssid", "set wifi network", NULL, _set_wifi_ssid);
+    console_register("wifi_pass", "set wifi password", NULL, _set_wifi_pass);
+    console_register("txpow", "set wifi tx power", NULL, _set_txpow);
+    console_register("country", "set wifi country code", NULL, _set_wifi_country);
 
+    // client.portal
+    console_register("api_secret", "set api secret", NULL, _set_api_secret);
+    console_register("api_url", "set api url", NULL, _set_api_url);
+    
+    // client.dfu
+    console_register("dfu_url", "set dfu url", NULL, _set_dfu_url);
+    console_register("dfu_skip_cn", "skip common name verification for DFU server", NULL, _set_dfu_skipcncheck);
+    console_register("dfu_skip_ver", "skip version check during DFU", NULL, _set_dfu_skipvercheck);
+
+    // general
+
+    // buzzer
+
+    // interlock
+    console_register("ilock_url", "set interlock tasmota host", NULL, _set_ilock_url);
+    console_register("ilock_user", "set interlock tasmota username", NULL, _set_ilock_user);
+    console_register("ilock_pass", "set interlock tasmota password", NULL, _set_ilock_pass);
+
+    // lcd
+
+    // pins
+
+    // dev
+
+    // debug
+
+    
     INFO("Fetching configuration");
     status_t status = nvstate_config(&_config);
     if (status != STATUS_OK)
@@ -216,4 +233,127 @@ int _set_api_url(int argc, char **argv)
         nvstate_config_set(&_config);
     }
     return 0;
+}
+
+int _set_dfu_url(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting DFU URL\n");
+        strcpy(_config.client.dfu.url, argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;
+}
+
+int _set_ilock_user(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting interlock tasmota username\n");
+        strcpy(_config.interlock.tasmota_user, argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;
+}
+
+int _set_ilock_pass(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting interlock tasmota password\n");
+        strcpy(_config.interlock.tasmota_pass, argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;
+}
+
+int _set_device_type(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting device type\n");
+        if (strcmp("door", argv[1]) == 0)
+        {
+            _config.device_type = DEVICE_DOOR;
+        }
+        else if (strcmp("interlock", argv[1]) == 0)
+        {
+            _config.device_type = DEVICE_INTERLOCK;
+        }
+        else if (strcmp("vending", argv[1]) == 0)
+        {
+            _config.device_type = DEVICE_VENDING;
+        }
+        else
+        {
+            printf("Invalid device string - choose door, interlock, or vending\n");
+            return 0;
+        }
+        nvstate_config_set(&_config);
+    }
+    return 0;    
+}
+
+int _set_txpow(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("TX power setting not implemented\n");
+        //int pow = atoi(argv[1]);
+        //_config.client.net.wifi_power = pow;
+        //nvstate_config_set(&_config);
+    }
+    return 0;
+}
+
+int _set_wifi_country(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        if (strlen(argv[1]) == 2)
+        {
+            printf("Setting wifi country code\n");
+            strcpy(_config.client.net.wifi_country_code, argv[1]);
+            nvstate_config_set(&_config);
+        }
+        else
+        {
+            printf("Country code must be 2 characters (e.g. \"US\")");
+        }
+    }
+    return 0;
+}
+
+int _set_ilock_url(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting interlock tasmota URL\n");
+        strcpy(_config.interlock.tasmota_host, argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;
+}
+
+int _set_dfu_skipcncheck(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting dfu common name check skip\n");
+        _config.client.dfu.skip_cn_check = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;  
+}
+
+int _set_dfu_skipvercheck(int argc, char **argv)
+{
+    if (argc == 2)
+    {
+        printf("Setting dfu version check skip\n");
+        _config.client.dfu.skip_version_check = (bool) atoi(argv[1]);
+        nvstate_config_set(&_config);
+    }
+    return 0;    
 }

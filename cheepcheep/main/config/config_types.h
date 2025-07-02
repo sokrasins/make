@@ -19,6 +19,7 @@ typedef enum {
     DEVICE_DOOR,
     DEVICE_INTERLOCK,
     DEVICE_VENDING,
+    DEVICE_NONE,
 } device_type_t;
 
 typedef enum {
@@ -68,6 +69,7 @@ typedef struct {
     int fixed_unlock_delay;
     int rgb_led_count;
     bool wiegand_enabled;
+    bool uid_32bit_mode;
 } config_general_t;
 
 typedef struct {
@@ -125,7 +127,6 @@ typedef struct {
 
 typedef struct {
     bool enable_backup_server;
-    bool uid_32bit_mode;
     int cron_period;
 } config_debug_t;
 

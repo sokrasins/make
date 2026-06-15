@@ -4246,6 +4246,82 @@
 			(justify left bottom)
 		)
 	)
+	(dimension
+		(type orthogonal)
+		(layer "Margin")
+		(uuid "57612f42-7e5d-4a64-baf2-7bab91a7d1c0")
+		(pts
+			(xy 179 64) (xy 231 64)
+		)
+		(height -8.1)
+		(orientation 0)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 0)
+			(precision 4)
+			(suppress_zeroes yes)
+		)
+		(style
+			(thickness 0.1)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(arrow_direction outward)
+			(extension_height 0.58642)
+			(extension_offset 0.5)
+			(keep_text_aligned yes)
+		)
+		(gr_text "52"
+			(at 205 54.75 0)
+			(layer "Margin")
+			(uuid "57612f42-7e5d-4a64-baf2-7bab91a7d1c0")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+	)
+	(dimension
+		(type orthogonal)
+		(layer "Margin")
+		(uuid "d13e84bf-da25-46cf-8375-411854d2c6df")
+		(pts
+			(xy 231 64) (xy 231 96)
+		)
+		(height 8.7)
+		(orientation 1)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 0)
+			(precision 4)
+			(suppress_zeroes yes)
+		)
+		(style
+			(thickness 0.1)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(arrow_direction outward)
+			(extension_height 0.58642)
+			(extension_offset 0.5)
+			(keep_text_aligned yes)
+		)
+		(gr_text "32"
+			(at 238.55 80 90)
+			(layer "Margin")
+			(uuid "d13e84bf-da25-46cf-8375-411854d2c6df")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+	)
 	(segment
 		(start 187.46 73.54)
 		(end 187.46 64)
